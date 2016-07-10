@@ -1,0 +1,38 @@
+<html>
+<body bgcolor=black text=white>
+
+<script type="text/javascript" src=const.js></script>
+<script type="text/javascript" src=patterns.js></script>
+<script type="text/javascript" src=runcmd.js></script>
+<script type="text/javascript" src=lights.js></script>
+
+<div id="wrapper">
+
+<div style="position: absolute; left: 10px; top: 10px;">
+  <canvas id=lights width=1020 height=1020></canvas>
+</div>
+
+<div style="position: absolute; left: 50px; top: 50px; z-index: 1;">
+  <table border=0>
+    <tr> <td>
+      <textarea id=code rows=35 cols=40 style="float:left;"></textarea>
+    </td><td>
+      <button id=go onclick="prog()">Load code</button>
+      <br><br>
+      <br><br>
+      <div id=code_buttons> </div>
+      <br><br>
+      <button id=go onclick="loop(0)">Run once / stop</button><br>
+      <button id=go onclick="loop(1)">Run forever</button>
+    </td><td>
+      <b>Known operators: </b><br>
+       <br>
+       <!-- CONST -->
+    </td></tr>
+  </table>
+</div>
+
+</div>
+
+</body>
+</html>

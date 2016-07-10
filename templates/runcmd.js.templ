@@ -1,0 +1,43 @@
+var stack = [];
+
+var reg = [0,0,0,0,0]; 
+
+function runCmd(cmd, time, index, rnd, debug) {
+
+  var cmdlen = cmd.length;
+  var stack_ptr = 0;
+  var error = 0;
+  var loopstart = -1;
+  var loopindex = 0;
+
+  function POP(n) {if (stack_ptr < n) {error=1; alert("Stack underflow!")}};
+  function PUSH(n) {if (stack_ptr > STACK_SIZE - n) {error=1; alert("Stack overflow!")}};
+  function MIN(a, b) {return Math.min(a, b)};
+  function MAX(a, b) {return Math.max(a, b)};
+  function abs(a) {return Math.abs(a)};
+  function random(n) {return Math.floor((Math.random() * n));};
+
+  for (var i = 0; i < cmdlen; i++) {
+    if (debug)
+      console.log( stack.slice(0,stack_ptr), cmd[i]);
+
+    // INSERT SWITCH
+
+    if (error) {
+      return "";
+    }
+    if (stack_ptr < 0) {
+      alert("Uncaught stack underflow!");
+      return "";
+    }
+    if (stack_ptr >= STACK_SIZE) {
+      alert("Uncaught stack overflow!");
+      return "";
+    }
+    stack[stack_ptr - 1] &= 0xffff;
+    if  ( stack[stack_ptr - 1] > 32767 )
+      stack[stack_ptr - 1] = stack[stack_ptr - 1] - 65536;
+  }
+  alert("No return value!");
+  return "";
+}
