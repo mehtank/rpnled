@@ -8,4 +8,6 @@ web/runcmd.js
 control/commands.py
 rpnled/commands.cpp
 rpnled/commands.h
+web/led.js
+web/led.js.gz
 
