@@ -1,6 +1,11 @@
 *.pyc
+*.swp
+
 web/const.js
 web/index.html
 web/patterns.js
 web/runcmd.js
+control/commands.py
+rpnled/commands.cpp
+rpnled/commands.h
 
