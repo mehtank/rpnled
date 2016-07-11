@@ -7,12 +7,21 @@ INO_DIR = "rpnled"
 WEB_DIR = "web"
 CONTROL_DIR = "control"
 
-cpplines = (l for l in file(TEMPLATE_DIR + "/commands.h.templ").readlines())
+cpplines = (l for l in file(TEMPLATE_DIR + "/commands.cpp.templ").readlines())
+hpplines = (l for l in file(TEMPLATE_DIR + "/commands.h.templ").readlines())
 htmllines = (l for l in file(TEMPLATE_DIR + "/index.html.templ").readlines())
 
-with open(INO_DIR + "/commands.h", "w") as cpp:
-  with open(WEB_DIR + "/const.js", "w") as js:
-    with open(WEB_DIR + "/index.html", "w") as html:
+with open(INO_DIR + "/commands.h", "w") as hpp, \
+  open(INO_DIR + "/commands.cpp", "w") as cpp, \
+  open(CONTROL_DIR + "/commands.py", "w") as py, \
+  open(WEB_DIR + "/const.js", "w") as js, \
+  open(WEB_DIR + "/index.html", "w") as html:
+
+      for l in hpplines:
+        if "CONST" in l:
+          break
+        hpp.write(l)
+
       for l in cpplines:
         if "CONST" in l:
           break
@@ -25,15 +34,39 @@ with open(INO_DIR + "/commands.h", "w") as cpp:
         
       val = 0
 
-      for (c, s) in constants:
+      for op in operators:
         val -= 1
-        if c is not None:
-          cpp.write( "#define " + c + " " + repr(val) + "\n")
+        if op is not None:
+          c = "C_" + op[0]
+
+          pop, push = op[2]
+          cmd = op[3]
+          cmd = cmd.replace("#3", "stack[stack_ptr-3]")
+          cmd = cmd.replace("#2", "stack[stack_ptr-2]")
+          cmd = cmd.replace("#1", "stack[stack_ptr-1]")
+          cmd = cmd.replace("#0", "stack[stack_ptr]")
+
+          case = "      case " + c + ": " 
+          case += push > pop and "PUSH(" or "POP("
+          case += repr(max(push, pop)) + "); "
+          case += cmd
+          if push != pop: 
+            case += " stack_ptr -= %d;" % (pop - push)
+          case += " break;\n"
+
+          cpp.write( case )
+          hpp.write( "#define " + c + " " + repr(val) + "\n")
+          py.write( c + " = " + repr(val) + "\n")
           js.write( "var " + c + " = " + repr(val) + ";\n")
           #html.write( "<button id=go onclick=\"addcmd("+c+")\">" + c + "</button><br>\n")
           html.write( c + "<br>\n")
         else:
           html.write( "<br>\n")
+          cpp.write("\n")
+          hpp.write("\n")
+          py.write("\n")
+          js.write("\n")
+
         if not (val%29):
           html.write("</td><td>")
 
@@ -44,11 +77,11 @@ with open(INO_DIR + "/commands.h", "w") as cpp:
         '''
 
       for i, (c, s) in enumerate(other):
-        cpp.write( "#define " + c + " " + s + "\n")
+        hpp.write( "#define " + c + " " + s + "\n")
         js.write( "var " + c + " = " + s + ";\n")
 
-      for l in cpplines:
-        cpp.write(l)
+      for l in hpplines:
+        hpp.write(l)
 
       for l in htmllines:
         html.write(l)
