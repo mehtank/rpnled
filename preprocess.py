@@ -128,3 +128,8 @@ with open(WEB_DIR + "/patterns.js", "w") as js:
   for name in allnames:
     js.write(name + " : code_" + name + ",\n")
   js.write("}")
+
+import os
+os.chdir(WEB_DIR)
+os.system("uglifyjs  const.js patterns.js runcmd.js lights.js -c -m  > led.js")
+os.system("gzip < led.js > led.js.gz")
