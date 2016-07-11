@@ -1,6 +1,6 @@
 #!/usr/bin/python 
 
-from control.constants import *
+from api import *
 
 TEMPLATE_DIR = "templates"
 INO_DIR = "rpnled"

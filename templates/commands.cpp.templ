@@ -1,0 +1,24 @@
+#include "commands.h"
+
+#define POP(n) if (stack_ptr < n) break
+#define PUSH(n) if (stack_ptr > STACK_SIZE - n) break
+
+// Create a stack for program execution
+int16_t stack[STACK_SIZE];
+uint8_t stack_ptr = 0;
+
+CRGB runCmd(int16_t *cmd, uint8_t cmdlen, uint32_t time, uint16_t index, uint8_t rnd) {
+  static int16_t reg[REG_IDX + 1];
+  stack_ptr = 0;
+
+  int16_t loopstart = -1;
+  uint8_t loopindex = 0;
+
+  for (uint8_t i = 0; i < cmdlen; i++) {
+    switch (cmd[i]) { 
+      // CONST
+      default: PUSH(1); stack[stack_ptr++] = cmd[i];
+    }
+  }
+  return CRGB(0,0,0);
+}
