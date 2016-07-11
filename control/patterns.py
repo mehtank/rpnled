@@ -1,23 +1,4 @@
-import re
-
-js = []
-
-p_define = re.compile('^[\t ]*#[\t ]*define[\t ]+([a-zA-Z0-9_]+)[\t ]+')
-with open("commands.h", 'r') as f:
-  for line in f:
-    match = p_define.match(line)
-    if match:
-      name = match.group(1)
-      body = line[match.end():]
-      stmt = '%s = %s\n' % (name, body.strip())
-      js.append("var "+ stmt)
-      try:
-          exec stmt
-      except:
-          sys.stderr.write('Skipping: %s' % stmt)
-
-MINYELLOW = 30
-MAXYELLOW = 128
+import commands
 
 alloff = [
   0, 0, 0, C_RGB
@@ -116,7 +97,3 @@ weirdwave2 = [
 usa = [
   C_INDEX, C_TIME, 6, C_RSHIFT, C_PLUS, 32, C_BITAND, 0, 160, C_IFTE, C_INDEX, C_TIME, 2, C_RSHIFT, C_MINUS, 7, C_BITAND, 255, 0, C_IFTE, 255, C_HSV
 ]
-
-if __name__ == "__main__":
-  for j in js:
-    print j,
