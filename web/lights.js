@@ -83,7 +83,7 @@ function CRGB(r,g,b) {
   return "#" + str.slice(-6);
 }
 
-function CHSV(h, s, v, index) {
+function CHSV(h, s, v) {
   h &= 0xff;
   s &= 0xff;
   v &= 0xff;
