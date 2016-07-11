@@ -21,7 +21,10 @@ function runCmd(cmd, time, index, rnd, debug) {
     if (debug)
       console.log( stack.slice(0,stack_ptr), cmd[i]);
 
-    // INSERT SWITCH
+    switch (cmd[i]) { 
+      // CONST
+      default: PUSH(1); stack[stack_ptr++] = cmd[i];
+    }
 
     if (error) {
       return "";

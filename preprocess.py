@@ -10,11 +10,13 @@ CONTROL_DIR = "control"
 cpplines = (l for l in file(TEMPLATE_DIR + "/commands.cpp.templ").readlines())
 hpplines = (l for l in file(TEMPLATE_DIR + "/commands.h.templ").readlines())
 htmllines = (l for l in file(TEMPLATE_DIR + "/index.html.templ").readlines())
+jslines = (l for l in file(TEMPLATE_DIR + "/runcmd.js.templ").readlines())
 
 with open(INO_DIR + "/commands.h", "w") as hpp, \
   open(INO_DIR + "/commands.cpp", "w") as cpp, \
   open(CONTROL_DIR + "/commands.py", "w") as py, \
   open(WEB_DIR + "/const.js", "w") as js, \
+  open(WEB_DIR + "/runcmd.js", "w") as jsrun, \
   open(WEB_DIR + "/index.html", "w") as html:
 
       for l in hpplines:
@@ -31,7 +33,12 @@ with open(INO_DIR + "/commands.h", "w") as hpp, \
         if "CONST" in l:
           break
         html.write(l)
-        
+
+      for l in jslines:
+        if "CONST" in l:
+          break
+        jsrun.write(l)
+
       val = 0
 
       for op in operators:
@@ -55,6 +62,7 @@ with open(INO_DIR + "/commands.h", "w") as hpp, \
           case += " break;\n"
 
           cpp.write( case )
+          jsrun.write( case )
           hpp.write( "#define " + c + " " + repr(val) + "\n")
           py.write( c + " = " + repr(val) + "\n")
           js.write( "var " + c + " = " + repr(val) + ";\n")
@@ -89,19 +97,8 @@ with open(INO_DIR + "/commands.h", "w") as hpp, \
       for l in htmllines:
         html.write(l)
 
-with open(WEB_DIR + "/runcmd.js", "w") as js:
-  jslines = file(TEMPLATE_DIR + "/runcmd.js.templ").readlines()
-  for jsline in jslines:
-    if "SWITCH" in jsline: 
-      copying = False
-      lines = file(INO_DIR + "/commands.cpp").readlines()
-      for line in lines:
-        if "SWITCH" in line: 
-          copying = not copying
-        if copying:
-          js.write(line)
-    else:
-      js.write(jsline)
+      for l in jslines:
+        jsrun.write(l)
 
 import re
 plines = file(CONTROL_DIR + "/patterns.py").readlines()
