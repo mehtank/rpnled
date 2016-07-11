@@ -83,6 +83,9 @@ with open(INO_DIR + "/commands.h", "w") as hpp, \
       for l in hpplines:
         hpp.write(l)
 
+      for l in cpplines:
+        cpp.write(l)
+
       for l in htmllines:
         html.write(l)
 
