@@ -1,4 +1,4 @@
-import commands
+from commands import *
 
 alloff = [
   0, 0, 0, C_RGB

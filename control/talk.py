@@ -1,6 +1,7 @@
 from bluetooth import *
 from patterns import *
 from encode import encode
+import time
 import IPython
 
 target = "00:13:01:07:20:58"
