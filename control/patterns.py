@@ -95,5 +95,14 @@ weirdwave2 = [
 ]
 
 usa = [
-  C_INDEX, C_TIME, 6, C_RSHIFT, C_PLUS, 32, C_BITAND, 0, 160, C_IFTE, C_INDEX, C_TIME, 2, C_RSHIFT, C_MINUS, 7, C_BITAND, 255, 0, C_IFTE, 255, C_HSV
+      C_INDEX, 6, C_TIMESHIFT, C_PLUS, 32, C_BITAND, 
+      0, 
+      160, 
+    C_IFTE, 
+      C_INDEX, 7, C_TIMESHIFT, C_MINUS, 7, C_BITAND, 
+      255, 
+      0, 
+    C_IFTE, 
+    255, 
+  C_HSV 
 ]
