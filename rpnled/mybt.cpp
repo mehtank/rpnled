@@ -35,19 +35,20 @@ void btUpdate(void) {
     }
 
     if (bt_rxc < bt_maxlen-1) {
-      bt_buffer[bt_rxc++] = bt.read();
-      DEBUG("  stored: ", (int)bt_buffer[bt_rxc-1]);
-      
-      if (bt_buffer[bt_rxc-1] == 0) {
-        DEBUG("--ERROR--: ", bt_rxc);
-        bt_callback(bt_rxc);
-        btReset();
-        continue;
-      }
-      
-      if (++bt_phrasecnt == bt_phraselen-1) {
+      if (bt_phrasecnt++ == bt_phraselen-1) {
         bt_buffer[bt_rxc++] = 0;
+        DEBUG("  end phrase: ", (int)bt_buffer[bt_rxc-1]);
         bt_newphrase = 1;
+      } else {
+        bt_buffer[bt_rxc++] = bt.read();
+        DEBUG("  stored: ", (int)bt_buffer[bt_rxc-1]);
+      
+        if (bt_buffer[bt_rxc-1] == 0) {
+          DEBUG("--ERROR--: ", bt_rxc);
+          bt_callback(bt_rxc);
+          btReset();
+          continue;
+        }
       }
     }
   }
