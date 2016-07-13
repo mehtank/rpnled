@@ -1,6 +1,7 @@
 #include "FastLED.h"
 #include "commands.h"
 #include "mybt.h"
+#include <avr/wdt.h>
 
 #define NUM_LEDS 300
 #define NUM_STRIPS 2
@@ -31,6 +32,7 @@ void process(uint8_t rxc) {
 }
 
 void setup() {
+  wdt_disable();
   Serial.begin(115200);
   DEBUG("Started serial ", 0);
   btSetup(buffer, BUFLEN, &process);
@@ -38,11 +40,15 @@ void setup() {
 
   controllers[0] = &FastLED.addLeds<NEOPIXEL, 3>(leds, NUM_LEDS);
   controllers[1] = &FastLED.addLeds<NEOPIXEL, 2>(leds, NUM_LEDS);
+  wdt_enable(WDTO_1S);
 }
 
 uint8_t loopcnt = 0;
 
 void loop() {
+  // feed watchdog
+  wdt_reset();
+
   // Update the colors.
   uint32_t time = millis();
   if (loopcnt++ == 25) {
