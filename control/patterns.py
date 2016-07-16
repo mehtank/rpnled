@@ -106,3 +106,42 @@ usa = [
     255, 
   C_HSV 
 ]
+
+usa2 = [
+  C_INDEX, 6, C_TIMESHIFT, C_PLUS, C_STA,
+      C_REGA, 32, C_BITAND, 
+      0, 
+      160, 
+    C_IFTE, 
+      C_INDEX, 7, C_TIMESHIFT, C_MINUS, 7, C_BITAND, 
+      255, C_REGA, 31, C_BITAND, 16, C_DIFF, 15, C_MIN, 4, C_LSHIFT, C_MINUS,
+      0, 
+    C_IFTE, 
+    255, 
+  C_HSV 
+]
+
+usa3 = [
+  C_INDEX, 6, C_TIMESHIFT, C_PLUS, C_STA,
+      C_REGA, 32, C_BITAND, 
+      0, 
+      160, 
+    C_IFTE, 
+      C_INDEX, 7, C_TIMESHIFT, C_MINUS, 7, C_BITAND, 
+      255, C_REGA, 31, C_BITAND, 1, C_LSHIFT, 32, C_DIFF, 17, C_MINUS, 0, C_MAX, 4, C_LSHIFT, C_MINUS,
+      0, 
+    C_IFTE, 
+    255, 
+  C_HSV 
+]
+
+usa4 = [
+  C_INDEX, 6, C_TIMESHIFT, C_PLUS, C_STA,
+      C_REGA, 32, C_BITAND, 
+      0, 
+      160, 
+    C_IFTE, 
+    255, C_REGA, 31, C_BITAND, 1, C_LSHIFT, 32, C_DIFF, 17, C_MINUS, 0, C_MAX, 4, C_LSHIFT, C_MINUS,
+    255, 
+  C_HSV 
+]
