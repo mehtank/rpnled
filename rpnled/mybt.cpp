@@ -50,7 +50,7 @@ void btUpdate(void) {
           continue;
         }
       }
-    }
+    } else DEBUG("BUFFER OVERRUN", bt_rxc);
   }
 }
 

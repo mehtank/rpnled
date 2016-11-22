@@ -5,10 +5,10 @@
 
 #include "OneWireSerial.h"   //Software Serial Port
 
-// #define RxD 9  // for Duemilanove
-// #define TxD 8  // for Duemilanove
-#define RxD 10  // for ProMini breakout board
-#define TxD 11  // for ProMini breakout board
+#define RxD 9  // for Duemilanove
+#define TxD 8  // for Duemilanove
+//#define RxD 10  // for ProMini breakout board
+//#define TxD 11  // for ProMini breakout board
 
 #define DEBUG_ENABLED  1
 
