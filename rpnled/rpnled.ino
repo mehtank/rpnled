@@ -116,12 +116,14 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
             // send message to client
             // webSocket.sendTXT(num, "Connected");
             break;
-        case WStype_TEXT:
-            Serial.printf("[%u] get text: %s\n", num, buffer);
+        case WStype_BIN:
 	    DEBUG("On connection : ", num);
 	    DEBUG("  Got buffer of length : ", rxc);
+	    DEBUG("  Length byte: ", buffer[5]);
+            for (int i = 0; i < rxc; i++)
+              DEBUG("    char : ", buffer[i]);
 
-	    if (rxc > 5 && !strncmp((char*)buffer, "$PROG", 5) && rxc == buffer[5]+1) {
+	    if (rxc > 5 && !strncmp((char*)buffer, "$PROG", 5) && rxc == 2*buffer[5]+6) {
 	      memcpy((char*)program, &buffer[6], rxc-5);
 	      proglen = (rxc-6)/2;
 
@@ -130,6 +132,12 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
 		DEBUG("    Set program string : ", program[i]);
 	    }
 	    break;
+        case WStype_TEXT:
+            Serial.printf("[%u] get text: %s\n", num, buffer);
+            break;
+        default:
+            DEBUG("Unknown type : ", type);
+            DEBUG("Unknown len : ", rxc);
     }
 }
 
