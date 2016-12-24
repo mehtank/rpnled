@@ -183,11 +183,6 @@ function upload() {
   for (var i = 0, len = bytes.length; i < len; i++) 
     bbuf[i] = bytes[i];
 
-  // sendstr += String.fromCharCode.apply(null, bytes);
-
-  // console.log(sendstr);
-  // console.log(sendstr.length);
-  // connection.send(sendstr);
   console.log(bytes.length);
   connection.send(bbuf.buffer);
 }

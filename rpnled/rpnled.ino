@@ -22,7 +22,7 @@
  ************************/
 
 #define NUM_LEDS 300
-#define PROGLEN 42
+#define PROGLEN 200
 #define BUFLEN PROGLEN*2 + 6
 
 const int STRIP_PIN = 5;
