@@ -1,27 +1,35 @@
+#include <Arduino.h>
+
+#include <Hash.h>
+#include <FS.h>
+#include <ESP8266WiFi.h>
+#include <WiFiClient.h>
+#include <ESP8266WebServer.h>
+#include <WebSocketsServer.h>
+#include <ESP8266mDNS.h>
+
 #include "FastLED.h"
 #include "commands.h"
 
 #define DEBUG_ENABLED
 #include "debug.h"
+#include "file.h"
+#include "server.h"
 
 #define NUM_LEDS 300
 #define PROGLEN 42
 #define BUFLEN PROGLEN*2 + 6
-
-const int LED_PIN = D4;
-#define LED_ON digitalWrite(LED_PIN, LOW)
-#define LED_OFF digitalWrite(LED_PIN, HIGH)
 
 const int STRIP_PIN = 5;
 
 // Create a buffer for holding the colors (3 bytes per color).
 CRGB leds[NUM_LEDS];
 
-// Create a buffer to receive data from bluetooth
-char buffer[BUFLEN];
+// Create a buffer for holding the program
 int16_t program[PROGLEN] = {4, C_TIMESHIFT, C_INDEX, 3, C_LSHIFT, C_MINUS, 255, C_BITAND, C_HUE};
 uint8_t proglen = 9;
 
+/*
 void process(uint8_t rxc) {
   if (rxc > 0) {
     DEBUG("RX'ed bytes: ", rxc);
@@ -35,10 +43,11 @@ void process(uint8_t rxc) {
       DEBUG("Set program string : ", program[i]);
   }
 }
+*/
 
 void setup() {
   Serial.begin(115200);
-  DEBUG("Started serial ", 0);
+  DEBUG("Started serial");
   pinMode(LED_PIN, OUTPUT);    //Set LED pin
   LED_OFF;                     //Turn off LED
 
@@ -54,7 +63,6 @@ void loop() {
   if (loopcnt++ > 50) {
     LED_OFF;
     DEBUG("Time = ", time);
-    //btSend(65);
     loopcnt = 0;
   }
 
