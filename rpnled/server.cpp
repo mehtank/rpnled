@@ -34,16 +34,14 @@ void setupSTA(char* ssid, char* password) {
     }
 
     IPAddress myIP = WiFi.localIP();
-    DEBUG("STA IP address: ");
-    DEBUG(myIP.toString());
+    DEBUG("STA IP address: ", myIP.toString());
 }
 
 void setupAP(char* ssid, char* password) {
     WiFi.softAP(ssid, password);
 
     IPAddress myIP = WiFi.softAPIP();
-    DEBUG("AP IP address: ");
-    DEBUG(myIP.toString());
+    DEBUG("AP IP address: ", myIP.toString());
 }
 
 void registerPage(const char* url, const char* type, String &content) {

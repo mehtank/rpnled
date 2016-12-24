@@ -11,7 +11,6 @@
 #include "FastLED.h"
 #include "commands.h"
 
-#define DEBUG_ENABLED
 #include "debug.h"
 #include "file.h"
 #include "server.h"
@@ -48,7 +47,7 @@ char* sta_ssid =
 char* sta_password = 
   "DG1670A6ACDF2"; //gitignore  "...";
 
-char* mDNS_name = "led_xxxxxxxx";
+char* mDNS_name = "bedled";
 
 String html;
 String js;
@@ -63,7 +62,7 @@ void setup() {
   FastLED.addLeds<NEOPIXEL, STRIP_PIN>(leds, NUM_LEDS);
 
   sprintf(ap_ssid, "ESP_%08X", ESP.getChipId());
-  sprintf(mDNS_name, "led_%08X", ESP.getChipId());
+  //sprintf(mDNS_name, "led_%08X", ESP.getChipId());
 
   LED_ON;
   setupSTA(sta_ssid, sta_password);
@@ -72,7 +71,9 @@ void setup() {
 
   setupFile();
   html = loadFile("/index.html");
+  DEBUG("  loaded html: ", html.length());
   js = loadFile("/led.js");
+  DEBUG("  loaded js: ", js.length());
   registerPage("/", "text/html", html);
   registerPage("/led.js", "text/javascript", js);
 
