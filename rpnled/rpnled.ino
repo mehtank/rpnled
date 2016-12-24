@@ -12,7 +12,7 @@ const int LED_PIN = D4;
 #define LED_ON digitalWrite(LED_PIN, LOW)
 #define LED_OFF digitalWrite(LED_PIN, HIGH)
 
-const int STRIP_PIN = 3;
+const int STRIP_PIN = 5;
 
 // Create a buffer for holding the colors (3 bytes per color).
 CRGB leds[NUM_LEDS];
