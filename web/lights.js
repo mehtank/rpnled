@@ -155,3 +155,39 @@ function CHSV(h, s, v) {
     //console.log(r,g,b);
     return CRGB(r, g, b);
 }
+
+
+var connection = new WebSocket('ws://'+location.hostname+':81/', ['arduino']);
+connection.binaryType = "arraybuffer";
+connection.onopen = function(){
+  connection.send('Connect ' + new Date()); 
+};
+connection.onerror = function(error){
+  console.log('WebSocket Error ', error);
+};
+connection.onmessage = function(e){
+  console.log('Server: ', e.data);
+};
+
+function upload() {
+  var p = document.getElementById("code");
+  var arr = eval("[" + p.value + "]");
+
+  var bytes = [36, 80, 82, 79, 71, arr.length]; // $PROG + len 
+  for (var i = 0, len = arr.length; i < len; i++) {
+      bytes.push(arr[i] & 0xff);
+      bytes.push((arr[i] & 0xffff) >> 8);
+  }
+
+  var bbuf = new Uint8Array(arr.length*2 + 6);
+  for (var i = 0, len = bytes.length; i < len; i++) 
+    bbuf[i] = bytes[i];
+
+  // sendstr += String.fromCharCode.apply(null, bytes);
+
+  // console.log(sendstr);
+  // console.log(sendstr.length);
+  // connection.send(sendstr);
+  console.log(bytes.length);
+  connection.send(bbuf.buffer);
+}
