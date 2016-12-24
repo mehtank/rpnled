@@ -1,16 +1,21 @@
 #include "FastLED.h"
 #include "commands.h"
-#include "mybt.h"
-#include <avr/wdt.h>
+
+#define DEBUG_ENABLED
+#include "debug.h"
 
 #define NUM_LEDS 300
-#define NUM_STRIPS 2
 #define PROGLEN 42
 #define BUFLEN PROGLEN*2 + 6
 
+const int LED_PIN = D4;
+#define LED_ON digitalWrite(LED_PIN, LOW)
+#define LED_OFF digitalWrite(LED_PIN, HIGH)
+
+const int STRIP_PIN = 3;
+
 // Create a buffer for holding the colors (3 bytes per color).
 CRGB leds[NUM_LEDS];
-CLEDController *controllers[NUM_STRIPS];
 
 // Create a buffer to receive data from bluetooth
 char buffer[BUFLEN];
@@ -32,39 +37,29 @@ void process(uint8_t rxc) {
 }
 
 void setup() {
-  wdt_disable();
   Serial.begin(115200);
   DEBUG("Started serial ", 0);
-  btSetup(buffer, BUFLEN, &process);
-  DEBUG("Started bluetooth ", 0);
+  pinMode(LED_PIN, OUTPUT);    //Set LED pin
+  LED_OFF;                     //Turn off LED
 
-  controllers[0] = &FastLED.addLeds<NEOPIXEL, 3>(leds, NUM_LEDS);
-  controllers[1] = &FastLED.addLeds<NEOPIXEL, 2>(leds, NUM_LEDS);
-  wdt_enable(WDTO_1S);
+  FastLED.addLeds<NEOPIXEL, STRIP_PIN>(leds, NUM_LEDS);
 }
 
 uint8_t loopcnt = 0;
 
 void loop() {
-  // feed watchdog
-  wdt_reset();
-
   // Update the colors.
   uint32_t time = millis();
-  if (loopcnt++ == 25) {
-    //DEBUG("Time = ", time);
+  if (loopcnt == 25) LED_ON;
+  if (loopcnt++ > 50) {
+    LED_OFF;
+    DEBUG("Time = ", time);
     //btSend(65);
     loopcnt = 0;
   }
 
   uint8_t rnd = random(256);
   for(uint16_t i = 0; i < NUM_LEDS; i++)   
-    leds[NUM_LEDS-i-1] = runCmd(program, proglen, time, i, rnd);
-  controllers[0]->showLeds(); // display this frame
-
-  for(uint16_t i = NUM_LEDS; i < 2*NUM_LEDS; i++)   
-    leds[i-NUM_LEDS] = runCmd(program, proglen, time, i, rnd);
-  controllers[1]->showLeds(); // display this frame
-
-  btUpdate();
+    leds[i] = runCmd(program, proglen, time, i, rnd);
+  FastLED.show(); // display this frame
 }
