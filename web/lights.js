@@ -3,7 +3,7 @@ var ctx;
 var run = 0;
 
 function load_code(code) {
-  var p = document.getElementById("code");
+  var p = document.getElementById("code_raw");
   p.value = code;
   prog();
 }
@@ -37,14 +37,14 @@ window.onload = function() {
   ctx = c.getContext("2d");
 
   var p = document.getElementById("code_buttons");
+  var s = document.createElement("select");
   for (key in code_patterns) {
-    var b = document.createElement("input");
-    b.type = "button";
-    b.value = "Pattern: " + key;
-    b.onclick = new Function("load_code(code_patterns[\"" + key + "\"]);");
-    p.appendChild(b);
-    p.appendChild(document.createElement("br"));
+    var b = document.createElement("option");
+    b.text = "Pattern: " + key;
+    b.onmouseup = new Function("load_code(code_patterns[\"" + key + "\"]);");
+    s.appendChild(b);
   }
+  p.appendChild(s);
 
   load_code(code_patterns["rainbow"]);
   clear();
@@ -52,8 +52,9 @@ window.onload = function() {
 }
 
 function prog() {
+  resolve();
   var p = document.getElementById("code");
-  code = eval("[" + p.value + "]");
+  code = eval("[" + p.text + "]");
   console.log(code, code.length);
   clear();
 }
@@ -87,55 +88,6 @@ function CHSV(h, s, v) {
   h &= 0xff;
   s &= 0xff;
   v &= 0xff;
-/*
-    var value = v;
-    var saturation = s;
-
-    var invsat = 255 - saturation;
-    var brightness_floor = (value * invsat) >>> 8;
-
-    // The color amplitude is the maximum amount of R, G, and B
-    // that will be added on top of the brightness_floor to
-    // create the specific hue desired.
-    var color_amplitude = value - brightness_floor;
-
-    // Figure out which section of the hue wheel we're in,
-    // and how far offset we are withing that section
-    var section = h >>> 6; // 0..2
-    var offset = h & 63;  // 0..63
-
-    var rampup = offset; // 0..63
-    var rampdown = (64 - 1) - offset; // 63..0
-
-    var rampup_amp_adj   = (rampup   * color_amplitude) >>> 6;
-    var rampdown_amp_adj = (rampdown * color_amplitude) >>> 6;
-
-    // add brightness_floor offset to everything
-    var rampup_adj_with_floor   = rampup_amp_adj   + brightness_floor;
-    var rampdown_adj_with_floor = rampdown_amp_adj + brightness_floor;
-
-
-    if( section ) {
-        if( section == 1) {
-            // section 1: 0x40..0x7F
-            var r = brightness_floor;
-            var g = rampdown_adj_with_floor;
-            var b = rampup_adj_with_floor;
-        } else {
-            // section 2; 0x80..0xBF
-            var r = rampup_adj_with_floor;
-            var g = brightness_floor;
-            var b = rampdown_adj_with_floor;
-        }
-    } else {
-        // section 0: 0x00..0x3F
-        var r = rampdown_adj_with_floor;
-        var g = rampup_adj_with_floor;
-        var b = brightness_floor;
-    }
-    console.log(r,g,b);
-    return CRGB(r,g,b);
-*/
 
     var f = (h % 42) * 255 / 42 | 0;
     var p = (255 - s) * v / 255 | 0;
@@ -169,9 +121,16 @@ connection.onmessage = function(e){
   console.log('Server: ', e.data);
 };
 
+function resolve() {
+  var raw = document.getElementById("code_raw");
+  var code = document.getElementById("code");
+  code.text = raw.value;
+}
+
 function upload() {
+  resolve();
   var p = document.getElementById("code");
-  var arr = eval("[" + p.value + "]");
+  var arr = eval("[" + p.text + "]");
 
   var bytes = [36, 80, 82, 79, 71, arr.length]; // $PROG + len 
   for (var i = 0, len = arr.length; i < len; i++) {
