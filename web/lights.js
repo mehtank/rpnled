@@ -5,6 +5,11 @@ var run = 0;
 function load_code(code) {
   var p = document.getElementById("code_raw");
   p.value = code;
+  var p = document.getElementById("code");
+  p.textContent = "";
+  var p = document.getElementById("code_widgets");
+  while (p.firstChild) 
+    p.removeChild(p.firstChild);
   prog();
 }
 
@@ -54,7 +59,7 @@ window.onload = function() {
 function prog() {
   resolve();
   var p = document.getElementById("code");
-  code = eval("[" + p.text + "]");
+  code = eval("[" + p.textContent + "]");
   console.log(code, code.length);
   clear();
 }
@@ -124,13 +129,51 @@ connection.onmessage = function(e){
 function resolve() {
   var raw = document.getElementById("code_raw");
   var code = document.getElementById("code");
-  code.text = raw.value;
+  var wds = raw.value.split(",").map(function(x){return x.trim()});
+  console.log(wds);
+
+  for (var i = 0, len = wds.length; i < len; i++) {
+    w = wds[i];
+    if (w[0] == "$") {
+        var tokens = w.substring(1).split("_");
+        var name = tokens[0];
+        var param = document.getElementById("codeparam_" + name + "_value");
+        if (param === null) {
+            addwidget(tokens);
+            wds[i] = tokens[1];
+        } else {
+            wds[i] = param.value;
+        }
+    }
+  }
+
+  code.textContent = wds.join(", ");
+}
+
+function addwidget(tokens) {
+  var w = document.getElementById("code_widgets");
+  var p = document.createElement("div");
+
+  name = tokens[0];
+
+  var b = document.createElement("span");
+  b.textContent = name;
+  b.id = "codeparam_" + name + "_name";
+  p.appendChild(b);
+
+  var b = document.createElement("input");
+  b.value = tokens[1];
+  b.id = "codeparam_" + name + "_value";
+  b.onchange = new Function("prog()");
+  p.appendChild(b);
+
+  w.appendChild(p);
 }
 
 function upload() {
   resolve();
   var p = document.getElementById("code");
-  var arr = eval("[" + p.text + "]");
+  var arr = eval("[" + p.textContent + "]");
 
   var bytes = [36, 80, 82, 79, 71, arr.length]; // $PROG + len 
   for (var i = 0, len = arr.length; i < len; i++) {

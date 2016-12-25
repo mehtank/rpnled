@@ -10,15 +10,16 @@
 </div>
 
 <div style="position: absolute; left: 50px; top: 50px; z-index: 1;">
-  <table border=0>
+  <table border=0 style="width:920px;">
     <tr> <td>
+      <div id=code_buttons> </div> <br>
+      <div id=code_text> 
+        <textarea id=code_raw rows=25 cols=40></textarea>
+      </div> <br>
+      <div id=code_widgets> </div> <br>
       <div id=prog_buttons> 
         <button id=go onclick="prog()">Simulate</button>
         <button id=go onclick="upload()">Upload</button>
-      </div> <br>
-      <div id=code_buttons> </div> <br>
-      <div id=code_text> 
-        <textarea id=code_raw rows=25 cols=40 style="float:left;"></textarea>
       </div> <br>
       <div id=run_buttons> 
         <button id=go onclick="loop(0)">Run once / stop</button>
