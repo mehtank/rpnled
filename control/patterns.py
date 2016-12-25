@@ -13,7 +13,7 @@ rainbow = [
     C_INDEX, 2, C_LSHIFT,
   C_MINUS, 256, C_MOD,
   255,
-  255,
+  $value_255,
   C_HSV
 ]
 
@@ -96,8 +96,8 @@ weirdwave2 = [
 
 usa = [
       C_INDEX, 6, C_TIMESHIFT, C_PLUS, 32, C_BITAND, 
-      0, 
-      160, 
+      $hue1_0, 
+      $hue2_160, 
     C_IFTE, 
       C_INDEX, 7, C_TIMESHIFT, C_MINUS, 7, C_BITAND, 
       255, 
@@ -110,8 +110,8 @@ usa = [
 usa2 = [
   C_INDEX, 6, C_TIMESHIFT, C_PLUS, C_STA,
       C_REGA, 32, C_BITAND, 
-      0, 
-      160, 
+      $hue1_0, 
+      $hue2_160, 
     C_IFTE, 
       C_INDEX, 7, C_TIMESHIFT, C_MINUS, 7, C_BITAND, 
       255, C_REGA, 31, C_BITAND, 16, C_DIFF, 15, C_MIN, 4, C_LSHIFT, C_MINUS,
@@ -124,8 +124,8 @@ usa2 = [
 usa3 = [
   C_INDEX, 6, C_TIMESHIFT, C_PLUS, C_STA,
       C_REGA, 32, C_BITAND, 
-      0, 
-      160, 
+      $hue1_0, 
+      $hue2_160, 
     C_IFTE, 
       C_INDEX, 7, C_TIMESHIFT, C_MINUS, 7, C_BITAND, 
       255, C_REGA, 31, C_BITAND, 1, C_LSHIFT, 32, C_DIFF, 17, C_MINUS, 0, C_MAX, 4, C_LSHIFT, C_MINUS,
@@ -138,10 +138,20 @@ usa3 = [
 usa4 = [
   C_INDEX, 6, C_TIMESHIFT, C_PLUS, C_STA,
       C_REGA, 32, C_BITAND, 
-      0, 
-      160, 
+      $hue1_0, 
+      $hue2_160, 
     C_IFTE, 
     255, C_REGA, 31, C_BITAND, 1, C_LSHIFT, 32, C_DIFF, 17, C_MINUS, 0, C_MAX, 4, C_LSHIFT, C_MINUS,
     255, 
   C_HSV 
+]
+
+dots = [
+      C_INDEX, $colorshift_6, C_TIMESHIFT, C_PLUS, 1, $width_5, C_LSHIFT, C_BITAND,
+      $hue1_0,
+      $hue2_96,
+    C_IFTE,
+    255,
+    C_INDEX, $gapshift_7, C_TIMESHIFT, C_MINUS, $gap_7, C_BITAND, 0, 255, C_IFTE,
+  C_HSV
 ]
