@@ -56,6 +56,11 @@ window.onload = function() {
   loop(1);
 }
 
+function reprog() {
+  var p = document.getElementById("code_raw");
+  load_code(p.value);
+}
+
 function prog() {
   resolve();
   var p = document.getElementById("code");
