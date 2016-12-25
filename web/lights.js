@@ -161,16 +161,47 @@ function addwidget(tokens) {
 
   name = tokens[0];
 
-  var b = document.createElement("span");
+  var b = document.createElement("label");
+  b.htmlFor = "codeparam_" + name + "_value";
   b.textContent = name;
   b.id = "codeparam_" + name + "_name";
   p.appendChild(b);
 
   var b = document.createElement("input");
+  b.setAttribute("type", "number");
+  b.setAttribute("min", 0);
   b.value = tokens[1];
   b.id = "codeparam_" + name + "_value";
-  b.onchange = new Function("prog()");
+  b.onchange = prog;
   p.appendChild(b);
+
+  var bg = "";
+
+  if (tokens.length == 3) {
+      if (tokens[2] == "h") {
+        tokens[2] = 0; tokens[3] = 255;
+        bg = "linear-gradient(to right, red,orange,yellow,green,aqua,blue,purple, pink, red)"
+      } else if (tokens[2] == "s") {
+        tokens[2] = 0; tokens[3] = 255;
+        bg = "linear-gradient(to right, white, red)"
+      } else if (tokens[2] == "v") {
+        tokens[2] = 0; tokens[3] = 255;
+        bg = "linear-gradient(to right, black, white)"
+      }
+  }
+
+  if (tokens.length == 4) {
+    var s = document.createElement("input");
+    s.setAttribute("type", "range");
+    s.setAttribute("min", tokens[2]);
+    s.setAttribute("max", tokens[3]);
+    s.value = tokens[1];
+    s.id = "codeparam_" + name + "_slider";
+    s.onchange = function() {console.log(this.value); b.value = this.value; b.onchange();};
+    if (bg)
+      s.style.background = bg;
+    p.appendChild(s);
+  }
 
   w.appendChild(p);
 }
