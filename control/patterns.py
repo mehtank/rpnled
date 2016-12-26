@@ -8,39 +8,47 @@ allon = [
   255, 255, 255, C_RGB
 ]
 
+solid = [
+  $hue_0_h, $sat_255_s, $val_255_v, C_HSV
+]
+
 rainbow = [
-    C_TIME, 4, C_RSHIFT,
-    C_INDEX, 2, C_LSHIFT,
-  C_MINUS, 256, C_MOD,
-  255,
-  $value_255,
+    C_TIME, $speed_4, C_RSHIFT,
+    C_INDEX, $width_2, C_LSHIFT,
+  C_MINUS, 255, C_BITAND,
+  $sat_255_s,
+  $value_255_v,
   C_HSV
 ]
 
-colorwave2 = [
-  C_TIME, 6, C_RSHIFT, C_INDEX, 1, C_RSHIFT, C_MINUS, 256, C_MOD, 255, C_TIME, 4, C_RSHIFT, C_INDEX, 4, C_LSHIFT, C_PLUS, 511, C_MOD, 255, C_MINUS, C_ABS, C_HSV
+colorwave = [
+  C_TIME, $colorspeed_6, C_RSHIFT,
+  255, 
+    C_TIME, $pulsespeed_4, C_RSHIFT, 
+    C_INDEX, $pulsewidth_4, C_LSHIFT, 
+    C_PLUS, 511, C_MOD, 
+  255, C_MINUS, C_ABS, 
+  C_HSV
 ]
 
-colorwave = [
-  C_TIME, 6, C_RSHIFT, 255, C_TIME, 4, C_RSHIFT, C_INDEX, 4, C_LSHIFT, C_PLUS, 511, C_MOD, 255, C_MINUS, C_ABS, C_HSV
+rainbowwave = [
+    C_TIME, $colorspeed_6, C_RSHIFT,
+    C_INDEX, $colorwidth_1, C_LSHIFT,
+  C_MINUS, 255, C_BITAND,
+  255, 
+    C_TIME, $pulsespeed_4, C_RSHIFT, 
+    C_INDEX, $pulsewidth_4, C_LSHIFT, 
+    C_PLUS, 511, C_MOD, 
+  255, C_MINUS, C_ABS, 
+  C_HSV
 ]
 
 weird = [ 
-  C_TIME, 8, C_RSHIFT, 
+  $colorspeed_8, C_TIMESHIFT,
   255, 
-    C_TIME, 2, C_RSHIFT, C_INDEX, 4, C_LSHIFT, C_PLUS, 512, C_MOD, 
+    $pulsespeeda_2, C_TIMESHIFT, C_INDEX, $pulsewidth_4, C_LSHIFT, C_PLUS, 511, C_BITAND, 
     511,    
-    C_TIME, 4, C_RSHIFT, C_INDEX, 4, C_LSHIFT, C_PLUS, 512, C_MOD, 
-    C_MINUS, 
-  C_MAX, 256, C_MINUS, C_HSV
-]
-
-weird2 = [ 
-  8, C_TIMESHIFT,
-  255, 
-    2, C_TIMESHIFT, C_INDEX, 4, C_LSHIFT, C_PLUS, 511, C_BITAND, 
-    511,    
-    4, C_TIMESHIFT, C_INDEX, 4, C_LSHIFT, C_PLUS, 511, C_BITAND, 
+    $pulsewidthb_4, C_TIMESHIFT, C_INDEX, $pulsewidth_4, C_LSHIFT, C_PLUS, 511, C_BITAND, 
     C_MINUS, 
   C_MAX, 256, C_MINUS, C_HSV
 ]
