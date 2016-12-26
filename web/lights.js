@@ -216,8 +216,16 @@ function upload() {
       bytes.push(arr[i] & 0xff);
       bytes.push((arr[i] & 0xffff) >> 8);
   }
+  connection_send(bytes);
+}
 
-  var bbuf = new Uint8Array(arr.length*2 + 6);
+function blink() {
+  var bytes = [36, 66, 76, 73, 78, 75]; // $BLINK
+  connection_send(bytes);
+}
+
+function connection_send(bytes) {
+  var bbuf = new Uint8Array(bytes.length);
   for (var i = 0, len = bytes.length; i < len; i++) 
     bbuf[i] = bytes[i];
 

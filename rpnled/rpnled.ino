@@ -146,14 +146,13 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
 	      DEBUG("  Set program length : ", proglen);
 	      for (int i = 0; i < proglen; i++)
 		DEBUG("    Set program string : ", program[i]);
-	    }
-	    break;
-        case WStype_TEXT:
-            Serial.printf("[%u] get text: %s\n", num, buffer);
-	    if (!strncmp((char*)buffer, "$BLINK", 6)) {
+	    } else if (!strncmp((char*)buffer, "$BLINK", 6)) {
               LED_ON;
               offat = millis() + 500;
             }
+	    break;
+        case WStype_TEXT:
+            Serial.printf("[%u] get text: %s\n", num, buffer);
             break;
         default:
             DEBUG("Unknown type : ", type);
