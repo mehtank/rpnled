@@ -11,6 +11,7 @@
 #include "FastLED.h"
 #include "commands.h"
 
+#include "breathe.h"
 #include "debug.h"
 #include "file.h"
 #include "server.h"
@@ -52,12 +53,20 @@ char* mDNS_name = "bedled";
 String html;
 String js;
 
+/************************
+ * Set up pins, LEDs, wifi
+ ************************/
+
 void setup() {
   Serial.begin(115200);
   DEBUG("Started serial");
 
+  pinMode(BREATHE_PIN, OUTPUT);    //Set LED pin
+  BREATHE_OFF;                     //Turn off LED
+
   pinMode(LED_PIN, OUTPUT);    //Set LED pin
   LED_OFF;                     //Turn off LED
+
 
   FastLED.addLeds<NEOPIXEL, STRIP_PIN>(leds, NUM_LEDS);
 
@@ -82,27 +91,33 @@ void setup() {
   setupMDNS(mDNS_name);
 }
 
+/************************
+ * Do LED loop
+ ************************/
+
 uint8_t loopcnt = 0;
+uint32_t offat = 0;
 
 void loop() {
   // Handle server stuff
   wsLoop();
   httpLoop();
+  breatheLoop();
 
   // Update the colors.
   uint32_t time = millis();
-  if (loopcnt == 25) LED_ON;
-  if (loopcnt++ > 50) {
-    LED_OFF;
-    // DEBUG("Time = ", time);
-    loopcnt = 0;
-  }
+
+  if (time > offat) LED_OFF;
 
   uint8_t rnd = random(256);
   for(uint16_t i = 0; i < NUM_LEDS; i++)   
     leds[i] = runCmd(program, proglen, time, i, rnd);
   FastLED.show(); // display this frame
 }
+
+/************************
+ * Handle websocket
+ ************************/
 
 void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
     switch(type) {
@@ -135,6 +150,10 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
 	    break;
         case WStype_TEXT:
             Serial.printf("[%u] get text: %s\n", num, buffer);
+	    if (!strncmp((char*)buffer, "$BLINK", 6)) {
+              LED_ON;
+              offat = millis() + 500;
+            }
             break;
         default:
             DEBUG("Unknown type : ", type);
