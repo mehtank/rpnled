@@ -39,10 +39,9 @@ with open(INO_DIR + "/commands.h", "w") as hpp, \
           break
         jsrun.write(l)
 
-      val = 0
+      val = -1
 
       for op in operators:
-        val -= 1
         if op is not None:
           c = "C_" + op[0]
 
@@ -68,21 +67,18 @@ with open(INO_DIR + "/commands.h", "w") as hpp, \
           js.write( "var " + c + " = " + repr(val) + ";\n")
           #html.write( "<button id=go onclick=\"addcmd("+c+")\">" + c + "</button><br>\n")
           html.write( c + "<br>\n")
+          val -= 1
         else:
           html.write( "<br>\n")
           cpp.write("\n")
           hpp.write("\n")
           py.write("\n")
           js.write("\n")
+          while val % 10:
+            val -= 1
 
         if not (val%29):
           html.write("</td><td>")
-
-        '''
-        else:
-          while val % 10:
-            val -= 1
-        '''
 
       for i, (c, s) in enumerate(other):
         hpp.write( "#define " + c + " " + s + "\n")

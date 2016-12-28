@@ -79,7 +79,7 @@ operators = (
 )
 
 other = (
-  ("REG_WIDTH" , "2" ),
+  ("REG_WIDTH" , "4" ),
   ("REG_IDX" ,   "(1<<REG_WIDTH)" ),
   ("REG_MAX" ,   "(REG_IDX - 1)" ),
   ("STACK_SIZE", "64" ),
