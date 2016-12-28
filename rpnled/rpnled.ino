@@ -48,7 +48,7 @@ char* sta_ssid =
 char* sta_password = 
   "DG1670A6ACDF2"; //gitignore  "...";
 
-char* mDNS_name = "bedled";
+char* mDNS_name = "lrled";
 
 String html;
 String js;
@@ -102,7 +102,7 @@ void loop() {
   // Handle server stuff
   wsLoop();
   httpLoop();
-  breatheLoop();
+  //breatheLoop();
 
   // Update the colors.
   uint32_t time = millis();
