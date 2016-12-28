@@ -79,7 +79,7 @@ function loop(forever) {
   // console.log(time);
   draw(code, time)
   if (run)
-    setTimeout(loop, 10);
+    setTimeout(loop, 100);
 }
 
 var code = [C_TIME, 4, C_RSHIFT, C_INDEX, 3, C_LSHIFT, C_PLUS, 6, C_TIMES, 256, 6, C_TIMES, C_MOD, 255, 255, C_HSV];
