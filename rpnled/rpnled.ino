@@ -25,6 +25,7 @@
  ************************/
 
 #define NUM_LEDS 300
+#define FOR_LEDS(var) for(uint16_t var = 0; var < NUM_LEDS; var++)   
 #define PROGLEN 200
 #define BUFLEN PROGLEN*2 + 6
 
@@ -37,8 +38,8 @@ CRGB leds[NUM_LEDS];
 int16_t program[PROGLEN] = {4, C_TIMESHIFT, C_INDEX, 3, C_LSHIFT, C_MINUS, 255, C_BITAND, C_HUE};
 uint8_t proglen = 9;
 
-enum ProgramState {STOPPED, RUNNING, ONCE, REDRAW};
-ProgramState state = RUNNING;
+enum ProgramState {STOPPED, RUNNING, ONCE, REDRAW, NYE};
+ProgramState state = NYE;
 
 /************************
  * Wireless parameters
@@ -182,8 +183,51 @@ void loop() {
     case REDRAW:
       FastLED.show(); // display this frame
       break;
+    case NYE:
+      runNYE();
+      FastLED.show(); // display this frame
+      break;
   }
 }
+
+/************************
+ * NYE loop
+ ************************/
+void runNYE() {
+      static int last_h = 0, last_m = 0, last_s = 0;
+      int h = hour(), m = minute(), s = second();
+
+      if (s >= 0) {
+        if (last_s == s) {
+          int fadeby = 2;
+          if (s > 49)
+            fadeby = 7;
+          FOR_LEDS(i)
+              leds[i].fadeToBlackBy( fadeby );
+        } else {
+          CRGB color = CRGB::White;
+          if (s < 10)
+            color = CRGB::Yellow;
+          else if (s < 20)
+            color = CRGB::Red;
+          else if (s < 30)
+            color = CRGB::Purple;
+          else if (s < 40)
+            color = CRGB::Blue;
+          else if (s < 50)
+            color = CRGB::Cyan;
+
+          int s10 = s%10;
+          for (int j = 0; j < (10-s10); j++) {
+            int start = 33 + 6*s10 + 12*j;
+            for (int i = start; i < start + 7; i++) {
+              leds[i] = color;
+            }
+          }
+        }
+      }
+      last_s = s;
+};
 
 /************************
  * Handle websocket
@@ -232,6 +276,8 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
               state = RUNNING;
 	    } else if (!strncmp((char*)buffer, "$NEXT", 6)) {
               state = ONCE;
+	    } else if (!strncmp((char*)buffer, "$NYE", 4)) {
+              state = NYE;
 	    } else if (!strncmp((char*)buffer, "$OFF", 4)) {
               fill_solid(leds, NUM_LEDS, CRGB::Black);
               state = REDRAW;
