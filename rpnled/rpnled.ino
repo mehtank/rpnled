@@ -34,6 +34,9 @@ CRGB leds[NUM_LEDS];
 int16_t program[PROGLEN] = {4, C_TIMESHIFT, C_INDEX, 3, C_LSHIFT, C_MINUS, 255, C_BITAND, C_HUE};
 uint8_t proglen = 9;
 
+enum ProgramState {STOPPED, RUNNING, ONCE, REDRAW};
+ProgramState state = RUNNING;
+
 /************************
  * Wireless parameters
  ************************/
@@ -109,10 +112,24 @@ void loop() {
 
   if (time > offat) LED_OFF;
 
-  uint8_t rnd = random(256);
-  for(uint16_t i = 0; i < NUM_LEDS; i++)   
-    leds[i] = runCmd(program, proglen, time, i, rnd);
-  FastLED.show(); // display this frame
+  switch (state) {
+    case STOPPED:
+      break;
+
+    case ONCE:
+      state = STOPPED;
+    case RUNNING: {
+      uint8_t rnd = random(256);
+      for(uint16_t i = 0; i < NUM_LEDS; i++)   
+        leds[i] = runCmd(program, proglen, time, i, rnd);
+      FastLED.show(); // display this frame
+      break;
+    }
+
+    case REDRAW:
+      FastLED.show(); // display this frame
+      break;
+  }
 }
 
 /************************
@@ -146,9 +163,19 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
 	      DEBUG("  Set program length : ", proglen);
 	      for (int i = 0; i < proglen; i++)
 		DEBUG("    Set program string : ", program[i]);
+              state = RUNNING;
 	    } else if (!strncmp((char*)buffer, "$BLINK", 6)) {
               LED_ON;
               offat = millis() + 500;
+	    } else if (!strncmp((char*)buffer, "$PAUSE", 6)) {
+              state = STOPPED;
+	    } else if (!strncmp((char*)buffer, "$START", 6)) {
+              state = RUNNING;
+	    } else if (!strncmp((char*)buffer, "$NEXT", 6)) {
+              state = ONCE;
+	    } else if (!strncmp((char*)buffer, "$OFF", 4)) {
+              fill_solid(leds, NUM_LEDS, CRGB::Black);
+              state = REDRAW;
             }
 	    break;
         case WStype_TEXT:
