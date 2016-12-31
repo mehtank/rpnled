@@ -8,6 +8,9 @@
 #include <WebSocketsServer.h>
 #include <ESP8266mDNS.h>
 
+#include <TimeLib.h>
+#include <NtpClientLib.h>
+
 #include "FastLED.h"
 #include "commands.h"
 
@@ -57,6 +60,44 @@ String html;
 String js;
 
 /************************
+ * NTP callbacks
+ ************************/
+
+void onSTAGotIP(WiFiEventStationModeGotIP ipInfo) {
+	DEBUG("Got IP: ", ipInfo.ip.toString().c_str());
+	NTP.begin("tick.ucla.edu", 1, true);
+	NTP.setInterval(20);
+	NTP.setTimeZone(-8);
+}
+
+void onSTADisconnected(WiFiEventStationModeDisconnected event_info) {
+	DEBUG("Disconnected from SSID: ", event_info.ssid.c_str());
+	DEBUG("Reason: ", event_info.reason);
+}
+
+void setupNTP() {
+	static WiFiEventHandler e1, e2;
+
+	NTP.onNTPSyncEvent([](NTPSyncEvent_t ntpEvent) {
+		if (ntpEvent) {
+			DEBUG("Time Sync error: ");
+			if (ntpEvent == noResponse)
+				DEBUG("  NTP server not reachable");
+			else if (ntpEvent == invalidAddress)
+				DEBUG("  Invalid NTP server address");
+		}
+		else {
+			DEBUG("Got NTP time: ", NTP.getTimeDateString(NTP.getLastNTPSync()));
+		}
+	});
+	WiFi.onEvent([](WiFiEvent_t e) {
+		Serial.printf("Event wifi -----> %d\n", e);
+	});
+	e1 = WiFi.onStationModeGotIP(onSTAGotIP);// As soon WiFi is connected, start NTP Client
+	e2 = WiFi.onStationModeDisconnected(onSTADisconnected);
+}
+
+/************************
  * Set up pins, LEDs, wifi
  ************************/
 
@@ -77,10 +118,11 @@ void setup() {
   //sprintf(mDNS_name, "led_%08X", ESP.getChipId());
 
   LED_ON;
-  setupSTA(sta_ssid, sta_password);
+  // setupSTA(sta_ssid, sta_password);
   setupAP(ap_ssid, ap_password);
   LED_OFF;
 
+  setupNTP();
   setupFile();
   html = loadFile("/index.html");
   DEBUG("  loaded html: ", html.length());
@@ -102,13 +144,24 @@ uint8_t loopcnt = 0;
 uint32_t offat = 0;
 
 void loop() {
+  static uint32_t time = 0;
+  static uint32_t last = 0;
+
   // Handle server stuff
   wsLoop();
   httpLoop();
   //breatheLoop();
 
   // Update the colors.
-  uint32_t time = millis();
+  time = millis();
+
+  if ((time - last) > 1100) {
+    last = time;
+    // time_t t = NTP.getTime(); // forces resync
+    DEBUG("hour: ", hour());
+    DEBUG("minute: ", minute());
+    DEBUG("second: ", second());
+  }
 
   if (time > offat) LED_OFF;
 
