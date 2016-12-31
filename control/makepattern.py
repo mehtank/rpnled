@@ -17,7 +17,7 @@ def makepattern(arr):
                     args = a[1:].split("_")
                     myarr[i] = myparams[args[0]]
             prog = struct.pack( "<" + "h" * len(myarr), *myarr)
-            l = len(prog) + 6
+            l = len(myarr)
             return "$PROG" + chr(l) + prog
         else:
             return params

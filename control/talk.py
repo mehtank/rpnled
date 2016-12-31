@@ -6,7 +6,7 @@ localname = "lrled"
 target = "ws://%s.local:81/" % localname
 
 def send(data):
-    ws = create_connection(target)#, subprotocols=["binary"])
+    ws = create_connection(target)
     ws.send_binary(data)
     ws.close()
 
