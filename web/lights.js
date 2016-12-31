@@ -138,7 +138,7 @@ function resolve() {
   console.log(wds);
 
   for (var i = 0, len = wds.length; i < len; i++) {
-    w = wds[i];
+    w = wds[i].slice(1,-1);
     if (w[0] == "$") {
         var tokens = w.substring(1).split("_");
         var name = tokens[0];

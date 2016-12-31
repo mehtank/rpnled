@@ -9,46 +9,46 @@ allon = [
 ]
 
 solid = [
-  $hue_0_h, $sat_255_s, $val_255_v, C_HSV
+  '$hue_0_h', '$sat_255_s', '$val_255_v', C_HSV
 ]
 
 rainbow = [
-    C_TIME, $speed_4, C_RSHIFT,
-    C_INDEX, $width_2, C_LSHIFT,
+    C_TIME, '$speed_4', C_RSHIFT,
+    C_INDEX, '$width_2', C_LSHIFT,
   C_MINUS, 255, C_BITAND,
-  $sat_255_s,
-  $value_255_v,
+  '$sat_255_s',
+  '$value_255_v',
   C_HSV
 ]
 
 colorwave = [
-  C_TIME, $colorspeed_6, C_RSHIFT,
+  C_TIME, '$colorspeed_6', C_RSHIFT,
   255, 
-    C_TIME, $pulsespeed_4, C_RSHIFT, 
-    C_INDEX, $pulsewidth_4, C_LSHIFT, 
+    C_TIME, '$pulsespeed_4', C_RSHIFT, 
+    C_INDEX, '$pulsewidth_4', C_LSHIFT, 
     C_PLUS, 511, C_MOD, 
   255, C_MINUS, C_ABS, 
   C_HSV
 ]
 
 rainbowwave = [
-    C_TIME, $colorspeed_6, C_RSHIFT,
-    C_INDEX, $colorwidth_1, C_LSHIFT,
+    C_TIME, '$colorspeed_6', C_RSHIFT,
+    C_INDEX, '$colorwidth_1', C_LSHIFT,
   C_MINUS, 255, C_BITAND,
   255, 
-    C_TIME, $pulsespeed_4, C_RSHIFT, 
-    C_INDEX, $pulsewidth_4, C_LSHIFT, 
+    C_TIME, '$pulsespeed_4', C_RSHIFT, 
+    C_INDEX, '$pulsewidth_4', C_LSHIFT, 
     C_PLUS, 511, C_MOD, 
   255, C_MINUS, C_ABS, 
   C_HSV
 ]
 
 weird = [ 
-  $colorspeed_8, C_TIMESHIFT,
+  '$colorspeed_8', C_TIMESHIFT,
   255, 
-    $pulsespeeda_2, C_TIMESHIFT, C_INDEX, $pulsewidth_4, C_LSHIFT, C_PLUS, 511, C_BITAND, 
+    '$pulsespeeda_2', C_TIMESHIFT, C_INDEX, '$pulsewidth_4', C_LSHIFT, C_PLUS, 511, C_BITAND, 
     511,    
-    $pulsewidthb_4, C_TIMESHIFT, C_INDEX, $pulsewidth_4, C_LSHIFT, C_PLUS, 511, C_BITAND, 
+    '$pulsewidthb_4', C_TIMESHIFT, C_INDEX, '$pulsewidth_4', C_LSHIFT, C_PLUS, 511, C_BITAND, 
     C_MINUS, 
   C_MAX, 256, C_MINUS, C_HSV
 ]
@@ -104,8 +104,8 @@ weirdwave2 = [
 
 usa = [
       C_INDEX, 6, C_TIMESHIFT, C_PLUS, 32, C_BITAND, 
-      $hue1_0, 
-      $hue2_160, 
+      '$hue1_0', 
+      '$hue2_160', 
     C_IFTE, 
       C_INDEX, 7, C_TIMESHIFT, C_MINUS, 7, C_BITAND, 
       255, 
@@ -118,8 +118,8 @@ usa = [
 usa2 = [
   C_INDEX, 6, C_TIMESHIFT, C_PLUS, C_STA,
       C_REGA, 32, C_BITAND, 
-      $hue1_0, 
-      $hue2_160, 
+      '$hue1_0', 
+      '$hue2_160', 
     C_IFTE, 
       C_INDEX, 7, C_TIMESHIFT, C_MINUS, 7, C_BITAND, 
       255, C_REGA, 31, C_BITAND, 16, C_DIFF, 15, C_MIN, 4, C_LSHIFT, C_MINUS,
@@ -132,8 +132,8 @@ usa2 = [
 usa3 = [
   C_INDEX, 6, C_TIMESHIFT, C_PLUS, C_STA,
       C_REGA, 32, C_BITAND, 
-      $hue1_0, 
-      $hue2_160, 
+      '$hue1_0', 
+      '$hue2_160', 
     C_IFTE, 
       C_INDEX, 7, C_TIMESHIFT, C_MINUS, 7, C_BITAND, 
       255, C_REGA, 31, C_BITAND, 1, C_LSHIFT, 32, C_DIFF, 17, C_MINUS, 0, C_MAX, 4, C_LSHIFT, C_MINUS,
@@ -146,8 +146,8 @@ usa3 = [
 usa4 = [
   C_INDEX, 6, C_TIMESHIFT, C_PLUS, C_STA,
       C_REGA, 32, C_BITAND, 
-      $hue1_0, 
-      $hue2_160, 
+      '$hue1_0', 
+      '$hue2_160', 
     C_IFTE, 
     255, C_REGA, 31, C_BITAND, 1, C_LSHIFT, 32, C_DIFF, 17, C_MINUS, 0, C_MAX, 4, C_LSHIFT, C_MINUS,
     255, 
@@ -155,11 +155,11 @@ usa4 = [
 ]
 
 dots = [
-      C_INDEX, $colorshift_6, C_TIMESHIFT, C_PLUS, 1, $width_5, C_LSHIFT, C_BITAND,
-      $hue1_0,
-      $hue2_96,
+      C_INDEX, '$colorshift_6', C_TIMESHIFT, C_PLUS, 1, '$width_5', C_LSHIFT, C_BITAND,
+      '$hue1_0',
+      '$hue2_96',
     C_IFTE,
     255,
-    C_INDEX, $gapshift_7, C_TIMESHIFT, C_MINUS, $gap_7, C_BITAND, 0, 255, C_IFTE,
+    C_INDEX, '$gapshift_7', C_TIMESHIFT, C_MINUS, '$gap_7', C_BITAND, 0, 255, C_IFTE,
   C_HSV
 ]
