@@ -1,17 +1,13 @@
-from bluetooth import *
+from websocket import create_connection
 from patterns import *
-from encode import encode
-import time
 import IPython
 
-target = "00:13:01:07:20:58"
-target = "20:14:05:21:29:71"
+localname = "lrled"
+target = "ws://%s.local:81/" % localname
 
 def send(data):
-  sock.send(encode(data))
-
-sock=BluetoothSocket( RFCOMM )
-sock.connect((target, 1))
-time.sleep(0.1)
+    ws = create_connection(target)#, subprotocols=["binary"])
+    ws.send_binary(data)
+    ws.close()
 
 IPython.embed()

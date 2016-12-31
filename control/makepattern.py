@@ -1,3 +1,5 @@
+import struct
+
 def makepattern(arr):
     params = {}
     for a in arr:
@@ -14,7 +16,9 @@ def makepattern(arr):
                 if isinstance(a, basestring):
                     args = a[1:].split("_")
                     myarr[i] = myparams[args[0]]
-            return myarr
+            prog = struct.pack( "<" + "h" * len(myarr), *myarr)
+            l = len(prog) + 6
+            return "$PROG" + chr(l) + prog
         else:
             return params
     return fn
