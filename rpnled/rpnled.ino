@@ -164,9 +164,15 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
 	      for (int i = 0; i < proglen; i++)
 		DEBUG("    Set program string : ", program[i]);
               state = RUNNING;
+
+	    } else if (rxc > 5 && !strncmp((char*)buffer, "$RGB", 4) && rxc == 3*((uint16_t*)(buffer))[2]+6) {
+	      memcpy((char*)leds, &buffer[6], rxc-6);
+              state = REDRAW;
+
 	    } else if (!strncmp((char*)buffer, "$BLINK", 6)) {
               LED_ON;
               offat = millis() + 500;
+
 	    } else if (!strncmp((char*)buffer, "$PAUSE", 6)) {
               state = STOPPED;
 	    } else if (!strncmp((char*)buffer, "$START", 6)) {
