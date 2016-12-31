@@ -274,7 +274,7 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
               state = STOPPED;
 	    } else if (!strncmp((char*)buffer, "$START", 6)) {
               state = RUNNING;
-	    } else if (!strncmp((char*)buffer, "$NEXT", 6)) {
+	    } else if (!strncmp((char*)buffer, "$NEXT", 5)) {
               state = ONCE;
 	    } else if (!strncmp((char*)buffer, "$NYE", 4)) {
               state = NYE;
