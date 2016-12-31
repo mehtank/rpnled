@@ -98,8 +98,8 @@ with open(INO_DIR + "/commands.h", "w") as hpp, \
 
 import re
 plines = file(CONTROL_DIR + "/patterns.py").readlines()
-start = re.compile("^([a-zA-Z0-9_]+) = \[\s*$");
-end = re.compile("^]")
+start = re.compile("^([a-zA-Z0-9_]+) = makepattern\(\[\s*$");
+end = re.compile("^]\)")
 name = None
 patt = ""
 allnames = []
