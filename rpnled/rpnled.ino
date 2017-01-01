@@ -200,17 +200,28 @@ void loop() {
  ************************/
 void runNYE() {
       static int last_h = 0, last_m = 0, last_s = 0;
+      static uint32_t last_ms = 0;
       int h = hour(), m = minute(), s = second();
+      uint32_t ms = millis();
 
-      if (s >= 0) {
-        if (last_s == s) {
-          int fadeby = 2;
-          if (s > 49)
-            fadeby = 7;
-          FOR_LEDS(i)
-              leds[i].fadeToBlackBy( fadeby );
-        } else {
-          CRGB color = CRGB::White;
+      countdown();
+};
+
+
+void countdown() {
+      static int last_s = 0;
+      int s = second();
+
+      if (last_s == s) {
+        int fadeby = (s > 39) ? 7 : 1;
+        FOR_LEDS(i)
+            leds[i].fadeToBlackBy( fadeby );
+        if (s < 50) delay(10);
+      } else {
+        CRGB color = CRGB::White;
+        int s10 = s%10;
+
+        if (s < 50) {
           if (s < 10)
             color = CRGB::Yellow;
           else if (s < 20)
@@ -222,10 +233,17 @@ void runNYE() {
           else if (s < 50)
             color = CRGB::Cyan;
 
-          int s10 = s%10;
-          for (int j = 0; j < (10-s10); j++) {
-            int start = 33 + 6*s10 + 12*j;
+          for (int j = 0; j <= s10; j++) {
+            int start = 87 - 6*s10 + 12*j;
             for (int i = start; i < start + 7; i++) {
+              leds[i] = color;
+            }
+          }
+        } else {
+          int d = 6+s10;
+          for (int j = 0; j < (10-s10); j++) {
+            int start = 90 - d/2 - d*(9-s10) + 2*d*j;
+            for (int i = start; i < start + d + 1; i++) {
               leds[i] = color;
             }
           }
