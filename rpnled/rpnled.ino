@@ -200,13 +200,33 @@ void loop() {
  ************************/
 void runNYE() {
       static int last_h = 0, last_m = 0, last_s = 0;
-      static uint32_t last_ms = 0;
       int h = hour(), m = minute(), s = second();
-      uint32_t ms = millis();
 
-      countdown();
+      if (m & 1)
+        countdown();
+      else
+        fireworks();
 };
 
+enum ParticleType {CONSTANT, FADING, SPARKLE, RAINBOWFADE, SHIFT};
+
+typedef struct {
+  int x;
+  int v; 
+  ParticleType type;
+  uint8_t hue, sat, val;
+  uint8_t param1, param2;
+  uint32_t start;
+} Particle;
+
+const int maxmortars = 10;
+const int maxstars = 100;
+
+int nummortars = 0;
+int numstars = 0;
+
+Particle mortars[maxmortars];
+Particle stars[maxstars];
 
 void countdown() {
       static int last_s = 0;
@@ -250,7 +270,55 @@ void countdown() {
         }
       }
       last_s = s;
+      nummortars = 0;
+      numstars = 0;
 };
+
+void drawfireworks(Particle *list, int num) {
+      for (int i = 0; i < num; i++) {
+        Particle *p = &(list[i]);
+        if (((p->x >> 3) < NUM_LEDS) && (p->x >= 0))
+          leds[p->x >> 3] = CHSV(p->hue, p->sat, p->val);
+      }
+}
+
+void updatefireworks(Particle *list, int *num) {
+      for (int i = *num-1; i >= 0; i--) {
+        Particle *p = &(list[i]);
+        p->x -= p->v;
+        if (p->x < 0) {
+          memcpy(&list[i], &list[*num--], sizeof(Particle));
+        } else {
+          p->v -= 1;
+        }
+      }
+}
+
+void launch() {
+  Particle *p = &(mortars[nummortars++]);
+  p->x = (30 << 3);
+  p->v = (5 << 3) + random(8);
+  p->type = CONSTANT;
+  p->hue = 0;
+  p->sat = 0;
+  p->val = 64;
+}
+
+void fireworks() {
+      uint32_t ms = millis();
+
+      if (nummortars < maxmortars) 
+        if (!random(10))
+          launch();
+
+      fill_solid(leds, NUM_LEDS, CRGB::Black);
+      drawfireworks(mortars, nummortars);
+      drawfireworks(stars, numstars);
+      updatefireworks(mortars, &nummortars);
+      updatefireworks(stars, &numstars);
+
+      delay(10 + ms - millis());
+}
 
 /************************
  * Handle websocket
