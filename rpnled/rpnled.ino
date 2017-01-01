@@ -140,6 +140,7 @@ void setup() {
   setupMDNS(mDNS_name);
   ArduinoOTA.setHostname(mDNS_name);
   ArduinoOTA.begin();
+  setupNYE(leds, NUM_LEDS);
 }
 
 /************************
@@ -190,7 +191,7 @@ void loop() {
       FastLED.show(); // display this frame
       break;
     case NYE:
-      runNYE(leds, NUM_LEDS);
+      nyeLoop();
       FastLED.show(); // display this frame
       break;
   }

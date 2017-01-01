@@ -53,15 +53,18 @@ void fireworks();
  * functions
  ************************/
 
-void runNYE(CRGB* leds, int num_leds) {
-      static int last_h = 0, last_m = 0, last_s = 0;
-      int h = hour(), m = minute(), s = second();
+void setupNYE(CRGB* leds, int num_leds) {
       nye_leds = leds;
       NYE_NUM_LEDS = num_leds;
+}
 
-      if (m & 1)
-        countdown();
-      else
+void nyeLoop() {
+      static int last_h = 0, last_m = 0, last_s = 0;
+      int h = hour(), m = minute(), s = second();
+
+      //if (m & 1)
+        //countdown();
+      //else
         fireworks();
 };
 

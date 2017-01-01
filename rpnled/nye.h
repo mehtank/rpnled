@@ -4,6 +4,7 @@
 #ifndef __NYE_H
 #define __NYE_H
 
-void runNYE(CRGB *leds, int NUM_LEDS);
+void setupNYE(CRGB *leds, int NUM_LEDS);
+void nyeLoop();
 
 #endif
