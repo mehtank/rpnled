@@ -119,14 +119,56 @@ void drawfireworks() {
       }
 }
 
+void deletestar(int i) {
+	memcpy(&stars[i], &stars[--numstars], sizeof(Particle));
+}
+
 void updatefireworks() {
       for (int i = numstars-1; i >= 0; i--) {
         Particle *p = &(stars[i]);
         p->x += p->v;
         if (p->x < (25 << XSHIFT)) {
-          memcpy(&stars[i], &stars[--numstars], sizeof(Particle));
+          deletestar(i);
         } else {
           p->v -= 1;
+	  switch (p->type) {
+		  case RAINBOWFADE:
+			  p->hue -= p->param2;
+		  case FADE:
+			  if (p->val < p->param1) 
+				  deletestar(i);
+			  else 
+				  p->val -= p->param1;
+			  break;
+		  case SHIFT:
+			  if (millis() - p->start > p->param2) {
+				p->hue = p->param1;
+				p->type = FADE;
+				p->param1 = 5;
+			  };
+			  break;
+		  case BREAK:
+			  if (millis() - p->start > p->param2) {
+				uint8_t hue = random(255);
+				uint8_t sat = 64 + random(127);
+				int spread = (1<<(XSHIFT-2)) + random(1 << (XSHIFT-2));
+
+				for (int j = 0; j < p->param1; j++) {
+					if (numstars < maxstars) {
+						Particle *p2 = &(stars[numstars++]);
+						p2->x = p->x;
+						p2->v = p->v - (p->param1)*spread + j*spread*2;
+						p2->hue = hue;
+						p2->sat = sat;
+						p2->val = 255;
+						p2->type = FADE;
+						p2->param1 = 10;
+					}
+				}
+				deletestar(i);
+			  };
+			  break;
+	  }
         }
       }
 }
@@ -151,7 +193,7 @@ void launch() {
 	p->sat = 128;
 	p->val = 255;
 	p->type = FADE;
-	p->param1 = 3;
+	p->param1 = 10;
     }
   }
 }
@@ -159,7 +201,7 @@ void launch() {
 void fireworks() {
       uint32_t ms = millis();
 
-      if (!random(100)) launch();
+      if (!random(20)) launch();
 
       fill_solid(nye_leds, NYE_NUM_LEDS, CRGB::Black);
       drawfireworks();
