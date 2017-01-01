@@ -29,13 +29,8 @@ typedef struct {
 CRGB *nye_leds;
 int NYE_NUM_LEDS;
 
-const int maxmortars = 1;
 const int maxstars = 100;
-
-int nummortars = 0;
 int numstars = 0;
-
-Particle mortars[maxmortars];
 Particle stars[maxstars];
 
 /************************
@@ -44,8 +39,8 @@ Particle stars[maxstars];
 
 void countdown();
 
-void drawfireworks(Particle *list, int num);
-void updatefireworks(Particle *list, int *num);
+void drawfireworks();
+void updatefireworks();
 void launch();
 void fireworks();
 
@@ -110,13 +105,12 @@ void countdown() {
         }
       }
       last_s = s;
-      nummortars = 0;
       numstars = 0;
 };
 
-void drawfireworks(Particle *list, int num) {
-      for (int i = 0; i < num; i++) {
-        Particle *p = &(list[i]);
+void drawfireworks() {
+      for (int i = 0; i < numstars; i++) {
+        Particle *p = &(stars[i]);
         if (((p->x >> XSHIFT) < NYE_NUM_LEDS) && (p->x >= 0)) {
 	  if (p->type == SPARKLE && random(p->param1))
 		  continue;
@@ -125,12 +119,12 @@ void drawfireworks(Particle *list, int num) {
       }
 }
 
-void updatefireworks(Particle *list, int *num) {
-      for (int i = *num-1; i >= 0; i--) {
-        Particle *p = &(list[i]);
+void updatefireworks() {
+      for (int i = numstars-1; i >= 0; i--) {
+        Particle *p = &(stars[i]);
         p->x += p->v;
         if (p->x < (25 << XSHIFT)) {
-          memcpy(&list[i], &list[(*num)--], sizeof(Particle));
+          memcpy(&stars[i], &stars[--numstars], sizeof(Particle));
         } else {
           p->v -= 1;
         }
@@ -138,7 +132,7 @@ void updatefireworks(Particle *list, int *num) {
 }
 
 void launch() {
-  Particle *p = &(mortars[nummortars++]);
+  Particle *p = &(stars[numstars++]);
   p->x = (30 << XSHIFT);
   p->v = (4 << XSHIFT) + random(1 << XSHIFT);
   p->hue = 0;
@@ -165,15 +159,11 @@ void launch() {
 void fireworks() {
       uint32_t ms = millis();
 
-      if (nummortars < maxmortars) 
-        if (!random(10))
-          launch();
+      if (!random(100)) launch();
 
       fill_solid(nye_leds, NYE_NUM_LEDS, CRGB::Black);
-      drawfireworks(mortars, nummortars);
-      drawfireworks(stars, numstars);
-      updatefireworks(mortars, &nummortars);
-      updatefireworks(stars, &numstars);
+      drawfireworks();
+      updatefireworks();
 
       int32_t d = 20 + ms - millis();
       DEBUG("  delay: ", d);
