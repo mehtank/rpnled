@@ -93,6 +93,15 @@ STARUPDATE(star_fade)
   return false;
 }
 
+STARUPDATE(star_satfade)
+  p->color.val -= ( p->param1 );
+  uint16_t sat = p->color.sat + 2*p->param1;
+  p->color.sat = min(sat, 255);
+  if (p->color.val < 10) 
+    return true;
+  return false;
+}
+
 STARUPDATE(star_rainbowfade)
   if (p->color.val == 255)
     p->color.hue = random(255);
@@ -227,12 +236,12 @@ void updatefireworks() {
 
 void launch() {
   uint8_t hue = random(255);
-  uint8_t sat = 64 + random(127);
+  uint8_t sat = 0; //64 + random(127);
 
   Particle *p = spawn(GROUND, LED2X(4) + random(LED2X(1)), CHSV(hue, sat, 255));
   p->substars = random(5, 10);
   p->start += 1000;
-  p->fn = star_sparkle;
+  p->fn = star_satfade;
   p->param1 = 10;
   p->param2 = 1000;
 
