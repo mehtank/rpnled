@@ -42,9 +42,9 @@ const CHSV DEFAULT_COLOR = CHSV(0,0,64);
 CRGB *nye_leds;
 int NYE_NUM_LEDS;
 
-const int maxstars = 100;
+#define MAXSTARS 200
 int numstars = 0;
-Particle stars[maxstars];
+Particle stars[MAXSTARS];
 
 /************************
  * function prototypes
@@ -135,7 +135,7 @@ STARUPDATE(star_sparkle)
 STARUPDATE(burststar)
   int spread = random(1, 5) << (XSHIFT-2);
   for (int j = 0; j < p->substars; j++) {
-    if (numstars < maxstars) {
+    if (numstars < MAXSTARS) {
       Particle *p2 = spawn(p);
       p2->substars = 0;
       p2->v = (j*2 - p->substars + 1)*spread;
@@ -239,12 +239,14 @@ void updatefireworks() {
 }
 
 void launch(Particle *pi) {
-  Particle *p = spawn(pi);
-  p->x = GROUND;
-  p->v = LED2X(4) + random(LED2X(1));
+  if (numstars < MAXSTARS) {
+    Particle *p = spawn(pi);
+    p->x = GROUND;
+    p->v = LED2X(4) + random(LED2X(1));
+  }
 
   for (int i = 0; i < 4; i++) {
-    if (numstars < maxstars) {
+    if (numstars < MAXSTARS) {
       Particle *p = spawn(GROUND, LED2X(1) + random(LED2X(1)), CHSV(40, 128, 255));
       p->fn = star_fade;
       p->param1 = 10;
@@ -297,7 +299,7 @@ void fireworks() {
       static int count = 0;
 
       //if (!random(20)) launch();
-      if (!(count++ % 60)) launch();
+      if (!(count++ % 40)) launch();
 
       fill_solid(nye_leds, NYE_NUM_LEDS, CRGB::Black);
       drawfireworks();
