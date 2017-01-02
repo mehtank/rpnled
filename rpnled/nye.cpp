@@ -5,6 +5,18 @@
 #include "nye.h"
 
 /************************
+ * Convenience macros
+ ************************/
+
+#define STARUPDATE(var) bool var(int i) { Particle *p = &(stars[i]);
+
+#define XSHIFT 5
+#define LED2X(x) (x << XSHIFT)
+#define X2LED(x) (x >> XSHIFT)
+
+#define GROUND LED2X(30)
+
+/************************
  * Types
  ************************/
 
@@ -20,20 +32,8 @@ typedef struct {
   int32_t param1, param2, param3;
 } Particle;
 
-const Particle DEFAULT_PARTICLE = {0,0, 1,0, CHSV(0,0,0), 0, 0, 0, 0,0,0};
+const Particle DEFAULT_PARTICLE = {0,0, (1<<XSHIFT-3),0, CHSV(0,0,0), 0, 0, 0, 0,0,0};
 const CHSV DEFAULT_COLOR = CHSV(0,0,64);
-
-/************************
- * Convenience macros
- ************************/
-
-#define STARUPDATE(var) bool var(int i) { Particle *p = &(stars[i]);
-
-#define XSHIFT 3
-#define LED2X(x) (x << XSHIFT)
-#define X2LED(x) (x >> XSHIFT)
-
-#define GROUND LED2X(30)
 
 /************************
  * module variables
@@ -138,6 +138,7 @@ STARUPDATE(burststar)
       p2->substars = 0;
       p2->v = (j*2 - p->substars + 1)*spread;
       p2->cv = 1;
+      p2->g = 1;
     }
   }
   deletestar(i);
