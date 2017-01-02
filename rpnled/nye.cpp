@@ -86,7 +86,7 @@ void deletestar(int i) {
  * star updates
  ************************/
 
-typedef enum {FADE, SATFADE, RAINBOWFADE, SHIFT, SPARKLE} StarType_t;
+typedef enum {FADE, SATFADE, RAINBOWFADE, SHIFT, SPARKLE, NUM_STARTYPES} StarType_t;
 
 STARUPDATE(star_fade)
   p->color.val -= ( p->param1 );
@@ -252,10 +252,7 @@ void launch(Particle *pi) {
   }
 }
 
-void launch(StarType_t t) {
-  uint8_t hue = random(255);
-  uint8_t sat = 64 + random(127);
-
+void launch(StarType_t t, uint8_t hue, uint8_t sat) {
   Particle p = DEFAULT_PARTICLE;
   p.substars = random(5, 10);
   p.start = millis() + 1000;
@@ -289,24 +286,10 @@ void launch(StarType_t t) {
 }
 
 void launch() {
-  static int count = 0;
-  switch ((count++ / 10) % 5) {
-    case 0:
-      launch(FADE);
-      break;
-    case 1:
-      launch(SATFADE);
-      break;
-    case 2:
-      launch(RAINBOWFADE);
-      break;
-    case 3:
-      launch(SHIFT);
-      break;
-    case 4:
-      launch(SPARKLE);
-      break;
-  }
+  uint8_t hue = random(255);
+  uint8_t sat = 64 + random(127);
+
+  launch(static_cast<StarType_t>(random(NUM_STARTYPES)), hue, sat);
 }
 
 void fireworks() {
