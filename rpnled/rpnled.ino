@@ -19,6 +19,7 @@
 #include "file.h"
 #include "server.h"
 #include "nye.h"
+#include "fireworks.h"
 
 
 /************************
@@ -39,7 +40,7 @@ CRGB leds[NUM_LEDS];
 int16_t program[PROGLEN] = {4, C_TIMESHIFT, C_INDEX, 3, C_LSHIFT, C_MINUS, 255, C_BITAND, C_HUE};
 uint8_t proglen = 9;
 
-enum ProgramState {STOPPED, RUNNING, ONCE, REDRAW, NYE};
+enum ProgramState {STOPPED, RUNNING, ONCE, REDRAW, NYE, FIREWORKS};
 ProgramState state = NYE;
 
 /************************
@@ -137,6 +138,7 @@ void setup() {
   setupWS(webSocketEvent);
   setupMDNS(mDNS_name);
   setupNYE(leds, NUM_LEDS);
+  setupFireworks(leds, NUM_LEDS);
 }
 
 /************************
@@ -187,6 +189,10 @@ void loop() {
       break;
     case NYE:
       nyeLoop();
+      FastLED.show(); // display this frame
+      break;
+    case FIREWORKS:
+      fireworksLoop();
       FastLED.show(); // display this frame
       break;
   }
@@ -241,6 +247,12 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
               state = ONCE;
 	    } else if (!strncmp((char*)buffer, "$NYE", 4)) {
               state = NYE;
+	    } else if (!strncmp((char*)buffer, "$FWGO", 5)) {
+              state = FIREWORKS;
+              startFireworks();
+	    } else if (!strncmp((char*)buffer, "$FWSTOP", 7)) {
+              state = FIREWORKS;
+              stopFireworks();
 	    } else if (!strncmp((char*)buffer, "$OFF", 4)) {
               fill_solid(leds, NUM_LEDS, CRGB::Black);
               state = REDRAW;
