@@ -94,7 +94,8 @@ STARUPDATE(star_fade)
 }
 
 STARUPDATE(star_rainbowfade)
-  p->color.hue -= 1;
+  if (p->color.val == 255)
+    p->color.hue = random(255);
   p->color.val -= ( p->param1 );
   if (p->color.val < 10) 
     return true;
@@ -125,7 +126,6 @@ STARUPDATE(burststar)
       Particle *p2 = spawn(p);
       p2->substars = 0;
       p2->v = (j*2 - p->substars + 1)*spread;
-      p2->g = 0;
       p2->cv = 1;
     }
   }
@@ -231,7 +231,7 @@ void launch() {
   Particle *p = spawn(GROUND, LED2X(4) + random(LED2X(1)), CHSV(hue, sat, 255));
   p->substars = random(5, 10);
   p->start += 1000;
-  p->fn = star_fade;
+  p->fn = star_rainbowfade;
   p->param1 = 10;
 
   for (int i = 0; i < 4; i++) {
@@ -254,7 +254,7 @@ void fireworks() {
       drawfireworks();
       updatefireworks();
 
-      int32_t d = 20 + ms - millis();
+      int32_t d = 10 + ms - millis();
       DEBUG("  delay: ", d);
       if (d > 0)
 	delay(d);
