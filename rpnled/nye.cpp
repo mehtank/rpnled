@@ -115,7 +115,8 @@ STARUPDATE(star_sparkle)
   if (millis() - p->start > p->param2) 
     return true;
 
-  p->color.val = ~p->color.val;
+  p->color.val = random(p->param1 >> 4) ? 0:255;
+  p->param1++;
   return false;
 }
 
@@ -231,8 +232,9 @@ void launch() {
   Particle *p = spawn(GROUND, LED2X(4) + random(LED2X(1)), CHSV(hue, sat, 255));
   p->substars = random(5, 10);
   p->start += 1000;
-  p->fn = star_rainbowfade;
+  p->fn = star_sparkle;
   p->param1 = 10;
+  p->param2 = 1000;
 
   for (int i = 0; i < 4; i++) {
     if (numstars < maxstars) {
