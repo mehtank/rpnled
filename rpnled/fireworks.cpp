@@ -84,7 +84,7 @@ void deletestar(int i) {
  * star updates
  ************************/
 
-typedef enum {FADE, SATFADE, RAINBOWFADE, SHIFT, SPARKLE, NUM_STARTYPES} StarType_t;
+typedef enum {FADE, SATFADE, RAINBOWFADE, RAINBOWSATFADE, SHIFT, SPARKLE, NUM_STARTYPES} StarType_t;
 
 STARUPDATE(star_fade)
   p->color.val -= ( p->param1 );
@@ -105,6 +105,17 @@ STARUPDATE(star_satfade)
 STARUPDATE(star_rainbowfade)
   if (p->color.val == 255)
     p->color.hue = random(255);
+  p->color.val -= ( p->param1 );
+  if (p->color.val < 10) 
+    return true;
+  return false;
+}
+
+STARUPDATE(star_rainbowsatfade)
+  if (p->color.val == 255)
+    p->color.hue = random(255);
+  uint16_t sat = p->color.sat + 2*p->param1;
+  p->color.sat = min(sat, 255);
   p->color.val -= ( p->param1 );
   if (p->color.val < 10) 
     return true;
@@ -216,6 +227,10 @@ void launch(uint8_t t, uint8_t hue, uint8_t sat) {
     case SATFADE:
       sat = 0;
       p.fn = star_satfade;
+      break;
+    case RAINBOWSATFADE:
+      sat = 0;
+      p.fn = star_rainbowsatfade;
       break;
     case RAINBOWFADE:
       p.fn = star_rainbowfade;
