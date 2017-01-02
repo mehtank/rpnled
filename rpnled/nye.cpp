@@ -12,6 +12,7 @@ typedef bool (*fn_starupdate) (int);
 
 typedef struct {
   int x, v; 
+  uint8_t g;
   CHSV color;
   uint8_t substars;
   uint32_t start;
@@ -19,7 +20,7 @@ typedef struct {
   int32_t param1, param2, param3;
 } Particle;
 
-const Particle DEFAULT_PARTICLE = {0, 0, CHSV(0,0,0), 0, 0, 0, 0, 0, 0};
+const Particle DEFAULT_PARTICLE = {0, 0, 1, CHSV(0,0,0), 0, 0, 0, 0,0,0};
 const CHSV DEFAULT_COLOR = CHSV(0,0,64);
 
 /************************
@@ -124,6 +125,7 @@ STARUPDATE(burststar)
       Particle *p2 = spawn(p);
       p2->substars = 0;
       p2->v += j*spread*2 - (p->substars)*spread;
+      p2->g = 0;
     }
   }
   deletestar(i);
@@ -211,7 +213,7 @@ void updatefireworks() {
   for (int i = numstars-1; i >= 0; i--) {
     Particle *p = &(stars[i]);
     p->x += p->v;
-    p->v -= 1;
+    p->v -= p->g;
     if (p->x < 0) 
       deletestar(i);
     else if (p->substars) {
@@ -245,7 +247,7 @@ void fireworks() {
       static int count = 0;
 
       //if (!random(20)) launch();
-      if (!(count++ % 100)) launch();
+      if (!(count++ % 60)) launch();
 
       fill_solid(nye_leds, NYE_NUM_LEDS, CRGB::Black);
       drawfireworks();
