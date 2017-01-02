@@ -12,7 +12,7 @@ typedef bool (*fn_starupdate) (int);
 
 typedef struct {
   int x, v; 
-  uint8_t g;
+  uint8_t g, cv;
   CHSV color;
   uint8_t substars;
   uint32_t start;
@@ -20,7 +20,7 @@ typedef struct {
   int32_t param1, param2, param3;
 } Particle;
 
-const Particle DEFAULT_PARTICLE = {0, 0, 1, CHSV(0,0,0), 0, 0, 0, 0,0,0};
+const Particle DEFAULT_PARTICLE = {0,0, 1,0, CHSV(0,0,0), 0, 0, 0, 0,0,0};
 const CHSV DEFAULT_COLOR = CHSV(0,0,64);
 
 /************************
@@ -119,13 +119,14 @@ STARUPDATE(star_sparkle)
 }
 
 STARUPDATE(burststar)
-  int spread = (1<<(XSHIFT-2)) + random(1 << (XSHIFT-2));
+  int spread = random(1, 5) << (XSHIFT-2);
   for (int j = 0; j < p->substars; j++) {
     if (numstars < maxstars) {
       Particle *p2 = spawn(p);
       p2->substars = 0;
-      p2->v += j*spread*2 - (p->substars)*spread;
+      p2->v = (j*2 - p->substars + 1)*spread;
       p2->g = 0;
+      p2->cv = 1;
     }
   }
   deletestar(i);
@@ -213,7 +214,7 @@ void updatefireworks() {
   for (int i = numstars-1; i >= 0; i--) {
     Particle *p = &(stars[i]);
     p->x += p->v;
-    p->v -= p->g;
+    p->v -= p->g + p->cv*(p->v / 4);
     if (p->x < 0) 
       deletestar(i);
     else if (p->substars) {
@@ -228,7 +229,7 @@ void launch() {
   uint8_t sat = 64 + random(127);
 
   Particle *p = spawn(GROUND, LED2X(4) + random(LED2X(1)), CHSV(hue, sat, 255));
-  p->substars = 4 + random(3);
+  p->substars = random(5, 10);
   p->start += 1000;
   p->fn = star_fade;
   p->param1 = 10;
