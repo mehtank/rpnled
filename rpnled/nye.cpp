@@ -86,6 +86,8 @@ void deletestar(int i) {
  * star updates
  ************************/
 
+typedef enum {FADE, SATFADE, RAINBOWFADE, SHIFT, SPARKLE} StarType_t;
+
 STARUPDATE(star_fade)
   p->color.val -= ( p->param1 );
   if (p->color.val < 10) 
@@ -236,16 +238,10 @@ void updatefireworks() {
   }
 }
 
-void launch() {
-  uint8_t hue = random(255);
-  uint8_t sat = 255; //64 + random(127);
-
-  Particle *p = spawn(GROUND, LED2X(4) + random(LED2X(1)), CHSV(hue, sat, 255));
-  p->substars = random(5, 10);
-  p->start += 1000;
-  p->fn = star_shift;
-  p->param1 = 10;
-  p->param2 = hue ^ 128;
+void launch(Particle *pi) {
+  Particle *p = spawn(pi);
+  p->x = GROUND;
+  p->v = LED2X(4) + random(LED2X(1));
 
   for (int i = 0; i < 4; i++) {
     if (numstars < maxstars) {
@@ -253,6 +249,63 @@ void launch() {
       p->fn = star_fade;
       p->param1 = 10;
     }
+  }
+}
+
+void launch(StarType_t t) {
+  uint8_t hue = random(255);
+  uint8_t sat = 64 + random(127);
+
+  Particle p = DEFAULT_PARTICLE;
+  p.substars = random(5, 10);
+  p.start = millis() + 1000;
+  p.param1 = 10;
+
+  switch (t) {
+    case SHIFT:
+      sat = 255;
+      p.param2 = hue ^ 128;
+      p.fn = star_shift;
+      break;
+    case SATFADE:
+      sat = 0;
+      p.fn = star_satfade;
+      break;
+    case RAINBOWFADE:
+      p.fn = star_rainbowfade;
+      break;
+    case FADE:
+      p.fn = star_fade;
+      break;
+    case SPARKLE:
+      p.param1 = 17;
+      p.param2 = 1000;
+      p.fn = star_sparkle;
+      break;
+  }
+  p.color = CHSV(hue, sat, 255);
+
+  launch(&p);
+}
+
+void launch() {
+  static int count = 0;
+  switch ((count++ / 10) % 5) {
+    case 0:
+      launch(FADE);
+      break;
+    case 1:
+      launch(SATFADE);
+      break;
+    case 2:
+      launch(RAINBOWFADE);
+      break;
+    case 3:
+      launch(SHIFT);
+      break;
+    case 4:
+      launch(SPARKLE);
+      break;
   }
 }
 
