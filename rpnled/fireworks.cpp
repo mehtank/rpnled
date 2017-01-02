@@ -22,7 +22,7 @@
 typedef bool (*fn_starupdate) (int);
 
 typedef struct {
-  int x, v; 
+  int16_t x, v; 
   uint8_t g, cv;
   CHSV color;
   uint8_t substars;
@@ -60,7 +60,7 @@ void fireworks();
  * star helpers
  ************************/
 
-Particle* spawn(int x, int v, CHSV color) {
+Particle* spawn(int16_t x, int16_t v, CHSV color) {
   Particle *p = &(stars[numstars++]);
   *p = DEFAULT_PARTICLE;
   p->x = x; 
@@ -199,8 +199,6 @@ void updatefireworks() {
 void launch(Particle *pi) {
   if (numstars < MAXSTARS) {
     Particle *p = spawn(pi);
-    p->x = GROUND;
-    p->v = LED2X(4) + random(LED2X(1));
   }
 
   for (int i = 0; i < 4; i++) {
@@ -212,24 +210,31 @@ void launch(Particle *pi) {
   }
 }
 
-void launch(uint8_t t, uint8_t hue, uint8_t sat) {
+void launch(uint8_t t, uint8_t hue, uint8_t sat, uint8_t val,
+    uint8_t substars, uint16_t tof, 
+    int32_t param1, int32_t param2, int32_t param3, 
+    int16_t x, int16_t v) {
+
   Particle p = DEFAULT_PARTICLE;
-  p.substars = random(5, 10);
-  p.start = millis() + 1000;
-  p.param1 = 10;
+  p.color = CHSV(hue, sat, val);
+  p.substars = substars; 
+  p.start = millis() + tof;
+  p.param1 = param1;
+  p.param2 = param2;
+  p.param3 = param3;
+  p.x = x;
+  p.v = v;
+
+  p.color = CHSV(hue, sat, val);
 
   switch (static_cast<StarType_t>(t)) {
     case SHIFT:
-      sat = 255;
-      p.param2 = hue ^ 128;
       p.fn = star_shift;
       break;
     case SATFADE:
-      sat = 0;
       p.fn = star_satfade;
       break;
     case RAINBOWSATFADE:
-      sat = 0;
       p.fn = star_rainbowsatfade;
       break;
     case RAINBOWFADE:
@@ -239,14 +244,75 @@ void launch(uint8_t t, uint8_t hue, uint8_t sat) {
       p.fn = star_fade;
       break;
     case SPARKLE:
-      p.param1 = 17;
-      p.param2 = 1000;
       p.fn = star_sparkle;
       break;
   }
-  p.color = CHSV(hue, sat, 255);
 
   launch(&p);
+}
+
+void launch(uint8_t* buffer) {
+
+	uint8_t t, hue, sat, val;
+	uint8_t substars; uint16_t tof;
+	int32_t param1; int32_t param2; int32_t param3;
+	int16_t x; int16_t v;
+
+	t = buffer[3]; 
+  hue = buffer[4];
+  sat = buffer[5];
+  val = buffer[6];
+  substars = buffer[7];
+  param1 = *(int32_t*)(&buffer[8]);
+  param2 = *(int32_t*)(&buffer[12]);
+  param3 = *(int32_t*)(&buffer[16]);
+  tof = *(uint16_t*)(&buffer[20]);
+	x = *(int16_t*)(&buffer[22]);
+	v = *(int16_t*)(&buffer[24]);
+
+  DEBUG("hue: ", hue);
+  DEBUG("sat: ", sat);
+  DEBUG("val: ", val);
+  DEBUG("substars = ", substars); 
+  DEBUG("start = ", tof);
+  DEBUG("param1 = ", param1);
+  DEBUG("param2 = ", param2);
+  DEBUG("param3 = ", param3);
+  DEBUG("x = ", x);
+  DEBUG("v = ", v);
+  DEBUG("t = ", t);
+
+  launch(t, hue, sat, val,
+    substars, tof, 
+    param1, param2, param3, 
+    x, v);
+
+}
+
+void launch(uint8_t t, uint8_t hue, uint8_t sat) {
+  uint32_t param1=10, param2=1000, param3=0;
+
+  switch (static_cast<StarType_t>(t)) {
+    case SHIFT:
+      sat = 255;
+      param2 = hue ^ 128;
+      break;
+    case SATFADE:
+      sat = 0;
+      break;
+    case RAINBOWSATFADE:
+      sat = 0;
+      break;
+    case SPARKLE:
+      param1 = 17;
+      param2 = 1000;
+      break;
+  }
+
+  launch(t, hue, sat, 255,
+      random(5, 10), 1000, 
+      param1, param2, param3,
+      GROUND, LED2X(4) + random(LED2X(1)));
 }
 
 void launch() {

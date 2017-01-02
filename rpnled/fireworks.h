@@ -9,6 +9,7 @@ void fireworksLoop() ;
 void startFireworks() ;
 void stopFireworks() ;
 void launch(uint8_t t, uint8_t hue, uint8_t sat) ;
+void launch(uint8_t* buffer);
 void launch() ;
 
 #endif
