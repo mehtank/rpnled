@@ -24,6 +24,8 @@
 
 #define GROUND LED2X(30)
 
+#define TICK 10
+
 /************************
  * Types
  ************************/
@@ -40,8 +42,8 @@ typedef struct Particle {
                     substars    = 0,
                     spread      = 0;
 
+  uint8_t           ticks       = 0;
   CHSV              color       = DEFAULT_COLOR;
-  int8_t            param0      = 0;
 
   struct Particle*  star        = NULL;
   fn_starupdate*    fn          = NULL;
@@ -95,16 +97,26 @@ Particle* spawn(int16_t x, int16_t v, CHSV color) {
 }
 
 Particle* spawn(Particle *pi) {
-  if (numstars >= MAXSTARS)
+  if ((numstars >= MAXSTARS) || (!pi))
     return NULL;
 
   Particle *p = &(stars[numstars++]);
   *p = *pi;
+  p->start = millis();
+
+  if (pi->star) {
+    Particle *star = new Particle;
+    *star = *(pi->star);
+    p->star = star;
+  }
+
   return p;
 }
 
 void deletestar(int i) {
-	memcpy(&stars[i], &stars[--numstars], sizeof(Particle));
+  Particle *p = &(stars[i]);
+  if (p->star) delete p->star;
+	memcpy(p, &stars[--numstars], sizeof(Particle));
 }
 
 /************************
@@ -183,8 +195,8 @@ STARUPDATE(star_sparkle,
 
 STARUPDATE(burststar,
   for (int j = 0; j < p->substars; j++) {
-    if (Particle *p2 = spawn(p)) {
-      p2->substars = 0;
+    if (Particle *p2 = spawn(p->star)) {
+      p2->x = p->x;
       p2->v = (j*2 - p->substars + 1)*p2->spread;
       p2->cv = 1;
       p2->g = 1;
@@ -215,7 +227,7 @@ void drawfireworks() {
   for (int i = 0; i < numstars; i++) {
     Particle *p = &(stars[i]);
     if ((X2LED(p->x) < _NUM_LEDS) && (p->x >= 0)) {
-      _leds[X2LED(p->x)] = p->substars ? DEFAULT_COLOR : p->color;
+      _leds[X2LED(p->x)] = p->color;
     }
   }
 }
@@ -223,19 +235,27 @@ void drawfireworks() {
 void updatefireworks() {
   for (int i = numstars-1; i >= 0; i--) {
     Particle *p = &(stars[i]);
+
     p->x += p->v;
     p->v -= p->g + p->cv*(p->v / 4);
     if (p->x < 0) 
       deletestar(i);
-    else if (p->substars) {
-      if (millis() > p->start) burststar(i);
-    } else if (p->fn && p->fn(i))
+    else if ((p->substars) && (millis() > p->start + TICK * p->ticks))
+      burststar(i);
+    else if (p->fn && p->fn(i) && !p->substars)
       deletestar(i);
   }
 }
 
 void launch(Particle *pi) {
-  Particle *p = spawn(pi);
+  Particle mortar;
+  mortar = *pi;
+  mortar.color = DEFAULT_COLOR;
+  mortar.fn = NULL;
+  mortar.star = pi;
+  mortar.star->substars = 0;
+
+  Particle *p = spawn(&mortar);
 
   for (int i = 0; i < 4; i++) {
     if (Particle *p = spawn(GROUND, LED2X(1) + random(LED2X(1)), CHSV(40, 128, 255))) {
@@ -275,7 +295,8 @@ void launch(uint8_t t, uint8_t hue, uint8_t sat) {
   p.param1       = param1;
   p.param2       = param2;
 
-  p.start        = millis() + 1000;
+  p.start        = millis();
+  p.ticks        = 100;
   p.fn           = starfns[t];
 
   launch(&p);
@@ -308,7 +329,7 @@ void fireworks() {
   drawfireworks();
   updatefireworks();
 
-  int32_t d = 10 + ms - millis();
+  int32_t d = TICK + ms - millis();
   if (d > 0)
     delay(d);
 }
@@ -329,7 +350,6 @@ void fireworksEvent(uint8_t* buffer, uint8_t rxc) {
 			uint8_t t = buffer[3]; 
 			Particle *p = (Particle*)(&buffer[4]);
 			p->fn = starfns[t];
-			p->start += millis();
 			launch(p);
 		} 
 	}
