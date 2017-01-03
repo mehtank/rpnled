@@ -43,7 +43,9 @@ int16_t program[PROGLEN] = {4, C_TIMESHIFT, C_INDEX, 3, C_LSHIFT, C_MINUS, 255, 
 uint8_t proglen = 9;
 
 enum ProgramState {STOPPED, RUNNING, ONCE, REDRAW, NYE, FIREWORKS};
-ProgramState state = NYE;
+ProgramState state = RUNNING;
+
+bool otaPause = false;
 
 /************************
  * Wireless parameters
@@ -141,6 +143,12 @@ void setup() {
   setupMDNS(mDNS_name);
   ArduinoOTA.setHostname(mDNS_name);
   ArduinoOTA.begin();
+  ArduinoOTA.onStart([]() {
+    otaPause = true;
+  });
+  ArduinoOTA.onEnd([]() {
+    otaPause = false;
+  });
   setupNYE(leds, NUM_LEDS);
   setupFireworks(leds, NUM_LEDS);
 }
@@ -157,49 +165,51 @@ void loop() {
   static uint32_t last = 0;
 
   // Handle server stuff
-  wsLoop();
-  httpLoop();
   ArduinoOTA.handle();
-  //breatheLoop();
+  if (!otaPause) {
+    wsLoop();
+    httpLoop();
+    //breatheLoop();
 
-  // Update the colors.
-  time = millis();
+    // Update the colors.
+    time = millis();
 
-  if ((time - last) > 1100) {
-    last = time;
-    // time_t t = NTP.getTime(); // forces resync
-    //DEBUG("hour: ", hour());
-    //DEBUG("minute: ", minute());
-    //DEBUG("second: ", second());
-  }
-
-  if (time > offat) LED_OFF;
-
-  switch (state) {
-    case STOPPED:
-      break;
-
-    case ONCE:
-      state = STOPPED;
-    case RUNNING: {
-      uint8_t rnd = random(256);
-      for(uint16_t i = 0; i < NUM_LEDS; i++)   
-        leds[i] = runCmd(program, proglen, time, i, rnd);
-      FastLED.show(); // display this frame
-      break;
+    if ((time - last) > 1100) {
+      last = time;
+      // time_t t = NTP.getTime(); // forces resync
+      //DEBUG("hour: ", hour());
+      //DEBUG("minute: ", minute());
+      //DEBUG("second: ", second());
     }
 
-    case REDRAW:
-      FastLED.show(); // display this frame
-      break;
-    case NYE:
-      nyeLoop();
-      FastLED.show(); // display this frame
-      break;
-    case FIREWORKS:
-      fireworksLoop();
-      FastLED.show(); // display this frame
-      break;
+    if (time > offat) LED_OFF;
+
+    switch (state) {
+      case STOPPED:
+        break;
+
+      case ONCE:
+        state = STOPPED;
+      case RUNNING: {
+        uint8_t rnd = random(256);
+        for(uint16_t i = 0; i < NUM_LEDS; i++)   
+          leds[i] = runCmd(program, proglen, time, i, rnd);
+        FastLED.show(); // display this frame
+        break;
+      }
+
+      case REDRAW:
+        FastLED.show(); // display this frame
+        break;
+      case NYE:
+        nyeLoop();
+        FastLED.show(); // display this frame
+        break;
+      case FIREWORKS:
+        fireworksLoop();
+        FastLED.show(); // display this frame
+        break;
+    }
   }
 }
 
