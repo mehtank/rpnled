@@ -129,6 +129,7 @@ typedef enum {FADE,
               RAINBOWSATFADE, 
               SHIFT, 
               SPARKLE, 
+              STROBE, 
               NUM_STARTYPES} StarType_t;
 
 REGISTER_STARS( star_fade, 
@@ -136,7 +137,9 @@ REGISTER_STARS( star_fade,
                 star_rainbowfade, 
                 star_rainbowsatfade, 
                 star_shift, 
-                star_sparkle );
+                star_sparkle,
+                star_strobe 
+              );
 
 STARUPDATE(star_fade,
   if (p->color.val < p->param1) 
@@ -190,6 +193,18 @@ STARUPDATE(star_sparkle,
 
   p->color.val = random(p->param1 >> 4) ? 0:255;
   p->param1++;
+  return false;
+)
+
+STARUPDATE(star_strobe,
+  if (p->color.val == 255 && p->color.sat == 0)
+    return true;
+
+  if (millis() - p->start > p->param1 + random(p->param2)) {
+    p->color.sat = 0;
+    p->color.val = 255;
+  }
+
   return false;
 )
 
@@ -273,37 +288,40 @@ void launch(Particle *pi) {
 
 void launch(uint8_t t, uint8_t hue, uint8_t sat) {
 
-  int16_t param1=10, param2=1000;
-
-  switch (static_cast<StarType_t>(t)) {
-    case SHIFT:
-      sat = 255;
-      param2 = hue ^ 128;
-      break;
-    case SATFADE:
-      sat = 0;
-      break;
-    case RAINBOWSATFADE:
-      sat = 0;
-      break;
-    case SPARKLE:
-      param1 = 17;
-      param2 = 1000;
-      break;
-  }
-
   Particle p;
   p.x            = GROUND;
   p.v            = LED2X(4) + random(LED2X(1));
   p.color        = CHSV(hue, sat, 255);
   p.substars     = random(5, 10);
   p.spread       = LED2X3(random(2, 10));
-  p.param1       = param1;
-  p.param2       = param2;
 
   p.start        = millis();
   p.ticks        = 100;
   p.fn           = starfns[t];
+  p.param1       = 10;
+  p.param2       = 1000;
+
+  switch (static_cast<StarType_t>(t)) {
+    case SHIFT:
+      p.color.sat = 255;
+      p.param2 = p.color.hue ^ 128;
+      break;
+    case SATFADE:
+      p.color.sat = 0;
+      break;
+    case RAINBOWSATFADE:
+      p.color.sat = 0;
+      break;
+    case SPARKLE:
+      p.param1 = 17;
+      break;
+    case STROBE:
+      p.substars <<= 1;
+      p.spread >>= 1;
+      p.color.val = 64;
+      p.param1 = 500;
+      break;
+  }
 
   launch(&p);
 }
