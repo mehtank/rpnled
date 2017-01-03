@@ -246,15 +246,12 @@ void launch(Particle *pi) {
 }
 
 void launch(uint8_t* buffer) {
-
-	uint8_t t, hue, sat, val;
-	uint8_t substars; uint16_t tof;
-	int32_t param1; int32_t param2; int32_t param3;
-	int16_t x; int16_t v;
-
-	t = buffer[3]; 
+	uint8_t t = buffer[3]; 
   Particle *p = (Particle*)(&buffer[4]);
+
   p->fn = starfns[t];
+  p->start += millis();
+
   launch(p);
 
 }
@@ -288,8 +285,10 @@ void launch(uint8_t t, uint8_t hue, uint8_t sat) {
   p.spread       = LED2X3(random(2, 10));
   p.param1       = param1;
   p.param2       = param2;
+
   p.start        = millis() + 1000;
   p.fn           = starfns[t];
+
   launch(&p);
 }
 
