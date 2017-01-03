@@ -245,17 +245,6 @@ void launch(Particle *pi) {
   }
 }
 
-void launch(uint8_t* buffer) {
-	uint8_t t = buffer[3]; 
-  Particle *p = (Particle*)(&buffer[4]);
-
-  p->fn = starfns[t];
-  p->start += millis();
-
-  launch(p);
-
-}
-
 void launch(uint8_t t, uint8_t hue, uint8_t sat) {
 
   int16_t param1=10, param2=1000;
@@ -322,4 +311,26 @@ void fireworks() {
   int32_t d = 10 + ms - millis();
   if (d > 0)
     delay(d);
+}
+
+void fireworksEvent(uint8_t* buffer, uint8_t rxc) {
+	if (!strncmp((char*)buffer, "$FWSTART", 8)) {
+		startFireworks();
+	} else if (!strncmp((char*)buffer, "$FWSTOP", 7)) {
+		stopFireworks();
+	} else if (!strncmp((char*)buffer, "$FWGO", 5)) {
+		stopFireworks();
+		launch();
+	} else if (!strncmp((char*)buffer, "$FW", 3)) {
+		stopFireworks();
+		if (rxc == 6) {
+			launch(buffer[3], buffer[4], buffer[5]);
+		} else if (rxc == sizeof(Particle) + 4) {
+			uint8_t t = buffer[3]; 
+			Particle *p = (Particle*)(&buffer[4]);
+			p->fn = starfns[t];
+			p->start += millis();
+			launch(p);
+		} 
+	}
 }

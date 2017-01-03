@@ -266,24 +266,9 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
               state = ONCE;
 	    } else if (!strncmp((char*)buffer, "$NYE", 4)) {
               state = NYE;
-	    } else if (!strncmp((char*)buffer, "$FWSTART", 8)) {
+	    } else if (!strncmp((char*)buffer, "$FW", 3)) {
               state = FIREWORKS;
-              startFireworks();
-	    } else if (!strncmp((char*)buffer, "$FWSTOP", 7)) {
-              state = FIREWORKS;
-              stopFireworks();
-	    } else if (!strncmp((char*)buffer, "$FWGO", 5)) {
-              state = FIREWORKS;
-              stopFireworks();
-              launch();
-	    } else if (rxc == 6 && !strncmp((char*)buffer, "$FW", 3)) {
-              state = FIREWORKS;
-              stopFireworks();
-              launch(buffer[3], buffer[4], buffer[5]);
-	    } else if (rxc == 32 && !strncmp((char*)buffer, "$FW", 3)) {
-              state = FIREWORKS;
-              stopFireworks();
-              launch(buffer); 
+              fireworksEvent(buffer, rxc); 
 	    } else if (!strncmp((char*)buffer, "$OFF", 4)) {
               fill_solid(leds, NUM_LEDS, CRGB::Black);
               state = REDRAW;
