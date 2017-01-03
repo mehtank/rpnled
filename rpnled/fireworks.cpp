@@ -21,18 +21,18 @@
 
 typedef bool (*fn_starupdate) (int);
 
+#define DEFAULT_COLOR CHSV(0,0,64)
 typedef struct {
-  int16_t x, v; 
-  uint8_t g, cv;
-  CHSV color;
-  uint8_t substars;
-  uint32_t start;
-  fn_starupdate fn;
-  int32_t param1, param2, param3;
+  int16_t x=0, v=0; 
+  uint8_t g=1<<(XSHIFT-3), cv=0;
+  CHSV color=DEFAULT_COLOR;
+  uint8_t substars=0;
+  uint32_t start=0;
+  fn_starupdate fn=NULL;
+  int32_t param1=0, param2=0, param3=0;
 } Particle;
 
-const Particle DEFAULT_PARTICLE = {0,0, (1<<XSHIFT-3),0, CHSV(0,0,0), 0, 0, 0, 0,0,0};
-const CHSV DEFAULT_COLOR = CHSV(0,0,64);
+const Particle DEFAULT_PARTICLE;
 
 /************************
  * module variables
@@ -61,6 +61,9 @@ void fireworks();
  ************************/
 
 Particle* spawn(int16_t x, int16_t v, CHSV color) {
+  if (numstars >= MAXSTARS)
+    return NULL;
+
   Particle *p = &(stars[numstars++]);
   *p = DEFAULT_PARTICLE;
   p->x = x; 
@@ -71,6 +74,9 @@ Particle* spawn(int16_t x, int16_t v, CHSV color) {
 }
 
 Particle* spawn(Particle *pi) {
+  if (numstars >= MAXSTARS)
+    return NULL;
+
   Particle *p = &(stars[numstars++]);
   *p = *pi;
   return p;
@@ -144,8 +150,7 @@ STARUPDATE(star_sparkle)
 STARUPDATE(burststar)
   int spread = random(1, 5) << (XSHIFT-2);
   for (int j = 0; j < p->substars; j++) {
-    if (numstars < MAXSTARS) {
-      Particle *p2 = spawn(p);
+    if (Particle *p2 = spawn(p)) {
       p2->substars = 0;
       p2->v = (j*2 - p->substars + 1)*spread;
       p2->cv = 1;
@@ -197,13 +202,10 @@ void updatefireworks() {
 }
 
 void launch(Particle *pi) {
-  if (numstars < MAXSTARS) {
-    Particle *p = spawn(pi);
-  }
+  Particle *p = spawn(pi);
 
   for (int i = 0; i < 4; i++) {
-    if (numstars < MAXSTARS) {
-      Particle *p = spawn(GROUND, LED2X(1) + random(LED2X(1)), CHSV(40, 128, 255));
+    if (Particle *p = spawn(GROUND, LED2X(1) + random(LED2X(1)), CHSV(40, 128, 255))) {
       p->fn = star_fade;
       p->param1 = 10;
     }
@@ -215,7 +217,7 @@ void launch(uint8_t t, uint8_t hue, uint8_t sat, uint8_t val,
     int32_t param1, int32_t param2, int32_t param3, 
     int16_t x, int16_t v) {
 
-  Particle p = DEFAULT_PARTICLE;
+  Particle p;
   p.color = CHSV(hue, sat, val);
   p.substars = substars; 
   p.start = millis() + tof;
