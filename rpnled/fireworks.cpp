@@ -130,6 +130,7 @@ typedef enum {FADE,
               SHIFT, 
               SPARKLE, 
               STROBE, 
+              COMET, 
               NUM_STARTYPES} StarType_t;
 
 REGISTER_STARS( star_fade, 
@@ -138,7 +139,8 @@ REGISTER_STARS( star_fade,
                 star_rainbowsatfade, 
                 star_shift, 
                 star_sparkle,
-                star_strobe 
+                star_strobe,
+                star_comet
               );
 
 STARUPDATE(star_fade,
@@ -205,6 +207,17 @@ STARUPDATE(star_strobe,
     p->color.val = 255;
   }
 
+  return false;
+)
+
+STARUPDATE(star_comet,
+  if (millis() - p->start > p->param2) 
+    return true;
+
+  if (Particle *p2 = spawn(p->x, 0, p->color)) {
+    p2->fn = star_fade;
+    p2->param1 = random(p->param1, 4*p->param1);
+  }
   return false;
 )
 
@@ -320,6 +333,10 @@ void launch(uint8_t t, uint8_t hue, uint8_t sat) {
       p.spread >>= 1;
       p.color.val = 64;
       p.param1 = 500;
+      break;
+    case COMET:
+      p.substars >>= 1;
+      p.param2 = 1500;
       break;
   }
 
