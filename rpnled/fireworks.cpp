@@ -7,10 +7,19 @@
  * Convenience macros
  ************************/
 
-#define STARUPDATE(var) bool var(int i) { Particle *p = &(stars[i]);
+#define STARUPDATE(var, code) \
+  bool var(int i) { \
+    Particle *p = &(stars[i]); \
+    { code } \
+  }
+
+#define REGISTER_STARS(...) \
+  fn_starupdate __VA_ARGS__; \
+  const fn_starupdate* starfns[] = {__VA_ARGS__};
 
 #define XSHIFT 5
 #define LED2X(x) (x << XSHIFT)
+#define LED2X3(x) (x << (XSHIFT-3))
 #define X2LED(x) (x >> XSHIFT)
 
 #define GROUND LED2X(30)
@@ -19,17 +28,29 @@
  * Types
  ************************/
 
-typedef bool (*fn_starupdate) (int);
+typedef bool fn_starupdate (int);
 
 #define DEFAULT_COLOR CHSV(0,0,64)
-typedef struct {
-  int16_t x=0, v=0; 
-  uint8_t g=1<<(XSHIFT-3), cv=0;
-  CHSV color=DEFAULT_COLOR;
-  uint8_t substars=0;
-  uint32_t start=0;
-  fn_starupdate fn=NULL;
-  int32_t param1=0, param2=0, param3=0;
+typedef struct Particle {
+  int16_t           x           = 0,
+                    v           = 0; 
+
+  uint8_t           g           = LED2X3(1),
+                    cv          = 0,
+                    substars    = 0,
+                    spread      = 0;
+
+  CHSV              color       = DEFAULT_COLOR;
+  int8_t            param0      = 0;
+
+  struct Particle*  star        = NULL;
+  fn_starupdate*    fn          = NULL;
+
+  int16_t           param1      = 0, 
+                    param2      = 0;
+
+  uint32_t          start       = 0;
+
 } Particle;
 
 const Particle DEFAULT_PARTICLE;
@@ -90,34 +111,47 @@ void deletestar(int i) {
  * star updates
  ************************/
 
-typedef enum {FADE, SATFADE, RAINBOWFADE, RAINBOWSATFADE, SHIFT, SPARKLE, NUM_STARTYPES} StarType_t;
+typedef enum {FADE, 
+              SATFADE, 
+              RAINBOWFADE, 
+              RAINBOWSATFADE, 
+              SHIFT, 
+              SPARKLE, 
+              NUM_STARTYPES} StarType_t;
 
-STARUPDATE(star_fade)
+REGISTER_STARS( star_fade, 
+                star_satfade, 
+                star_rainbowfade, 
+                star_rainbowsatfade, 
+                star_shift, 
+                star_sparkle );
+
+STARUPDATE(star_fade,
   p->color.val -= ( p->param1 );
   if (p->color.val < 10) 
     return true;
   return false;
-}
+)
 
-STARUPDATE(star_satfade)
+STARUPDATE(star_satfade,
   p->color.val -= ( p->param1 );
   uint16_t sat = p->color.sat + 2*p->param1;
   p->color.sat = min(sat, 255);
   if (p->color.val < 10) 
     return true;
   return false;
-}
+)
 
-STARUPDATE(star_rainbowfade)
+STARUPDATE(star_rainbowfade,
   if (p->color.val == 255)
     p->color.hue = random(255);
   p->color.val -= ( p->param1 );
   if (p->color.val < 10) 
     return true;
   return false;
-}
+)
 
-STARUPDATE(star_rainbowsatfade)
+STARUPDATE(star_rainbowsatfade,
   if (p->color.val == 255)
     p->color.hue = random(255);
   uint16_t sat = p->color.sat + 2*p->param1;
@@ -126,9 +160,9 @@ STARUPDATE(star_rainbowsatfade)
   if (p->color.val < 10) 
     return true;
   return false;
-}
+)
 
-STARUPDATE(star_shift)
+STARUPDATE(star_shift,
   if (p->color.sat < 2*p->param1) {
     p->color.hue = p->param2;
     p->fn = star_satfade;
@@ -136,30 +170,29 @@ STARUPDATE(star_shift)
     p->color.sat -= 2*p->param1;
   }
   return false;
-}
+)
 
-STARUPDATE(star_sparkle)
+STARUPDATE(star_sparkle,
   if (millis() - p->start > p->param2) 
     return true;
 
   p->color.val = random(p->param1 >> 4) ? 0:255;
   p->param1++;
   return false;
-}
+)
 
-STARUPDATE(burststar)
-  int spread = random(1, 5) << (XSHIFT-2);
+STARUPDATE(burststar,
   for (int j = 0; j < p->substars; j++) {
     if (Particle *p2 = spawn(p)) {
       p2->substars = 0;
-      p2->v = (j*2 - p->substars + 1)*spread;
+      p2->v = (j*2 - p->substars + 1)*p2->spread;
       p2->cv = 1;
       p2->g = 1;
     }
   }
   deletestar(i);
   return false;
-}
+)
 
 /************************
  * general NYE functions
@@ -212,47 +245,6 @@ void launch(Particle *pi) {
   }
 }
 
-void launch(uint8_t t, uint8_t hue, uint8_t sat, uint8_t val,
-    uint8_t substars, uint16_t tof, 
-    int32_t param1, int32_t param2, int32_t param3, 
-    int16_t x, int16_t v) {
-
-  Particle p;
-  p.color = CHSV(hue, sat, val);
-  p.substars = substars; 
-  p.start = millis() + tof;
-  p.param1 = param1;
-  p.param2 = param2;
-  p.param3 = param3;
-  p.x = x;
-  p.v = v;
-
-  p.color = CHSV(hue, sat, val);
-
-  switch (static_cast<StarType_t>(t)) {
-    case SHIFT:
-      p.fn = star_shift;
-      break;
-    case SATFADE:
-      p.fn = star_satfade;
-      break;
-    case RAINBOWSATFADE:
-      p.fn = star_rainbowsatfade;
-      break;
-    case RAINBOWFADE:
-      p.fn = star_rainbowfade;
-      break;
-    case FADE:
-      p.fn = star_fade;
-      break;
-    case SPARKLE:
-      p.fn = star_sparkle;
-      break;
-  }
-
-  launch(&p);
-}
-
 void launch(uint8_t* buffer) {
 
 	uint8_t t, hue, sat, val;
@@ -261,26 +253,15 @@ void launch(uint8_t* buffer) {
 	int16_t x; int16_t v;
 
 	t = buffer[3]; 
-  hue = buffer[4];
-  sat = buffer[5];
-  val = buffer[6];
-  substars = buffer[7];
-  param1 = *(int32_t*)(&buffer[8]);
-  param2 = *(int32_t*)(&buffer[12]);
-  param3 = *(int32_t*)(&buffer[16]);
-  tof = *(uint16_t*)(&buffer[20]);
-	x = *(int16_t*)(&buffer[22]);
-	v = *(int16_t*)(&buffer[24]);
-
-  launch(t, hue, sat, val,
-    substars, tof, 
-    param1, param2, param3, 
-    x, v);
+  Particle *p = (Particle*)(&buffer[4]);
+  p->fn = starfns[t];
+  launch(p);
 
 }
 
 void launch(uint8_t t, uint8_t hue, uint8_t sat) {
-  uint32_t param1=10, param2=1000, param3=0;
+
+  int16_t param1=10, param2=1000;
 
   switch (static_cast<StarType_t>(t)) {
     case SHIFT:
@@ -299,10 +280,17 @@ void launch(uint8_t t, uint8_t hue, uint8_t sat) {
       break;
   }
 
-  launch(t, hue, sat, 255,
-      random(5, 10), 1000, 
-      param1, param2, param3,
-      GROUND, LED2X(4) + random(LED2X(1)));
+  Particle p;
+  p.x            = GROUND;
+  p.v            = LED2X(4) + random(LED2X(1));
+  p.color        = CHSV(hue, sat, 255);
+  p.substars     = random(5, 10);
+  p.spread       = LED2X3(random(2, 10));
+  p.param1       = param1;
+  p.param2       = param2;
+  p.start        = millis() + 1000;
+  p.fn           = starfns[t];
+  launch(&p);
 }
 
 void launch() {
