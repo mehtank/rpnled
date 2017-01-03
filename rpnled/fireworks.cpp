@@ -270,18 +270,6 @@ void launch(uint8_t* buffer) {
 	x = *(int16_t*)(&buffer[22]);
 	v = *(int16_t*)(&buffer[24]);
 
-  DEBUG("hue: ", hue);
-  DEBUG("sat: ", sat);
-  DEBUG("val: ", val);
-  DEBUG("substars = ", substars); 
-  DEBUG("start = ", tof);
-  DEBUG("param1 = ", param1);
-  DEBUG("param2 = ", param2);
-  DEBUG("param3 = ", param3);
-  DEBUG("x = ", x);
-  DEBUG("v = ", v);
-  DEBUG("t = ", t);
-
   launch(t, hue, sat, val,
     substars, tof, 
     param1, param2, param3, 

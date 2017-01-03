@@ -216,19 +216,23 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
             // webSocket.sendTXT(num, "Connected");
             break;
         case WStype_BIN:
+            /*
 	    DEBUG("On connection : ", num);
 	    DEBUG("  Got buffer of length : ", rxc);
 	    DEBUG("  Length byte: ", buffer[5]);
             for (int i = 0; i < rxc; i++)
               DEBUG("    char : ", buffer[i]);
+            */
 
 	    if (rxc > 5 && !strncmp((char*)buffer, "$PROG", 5) && rxc == 2*buffer[5]+6) {
 	      memcpy((char*)program, &buffer[6], rxc-5);
 	      proglen = (rxc-6)/2;
 
+              /*
 	      DEBUG("  Set program length : ", proglen);
 	      for (int i = 0; i < proglen; i++)
 		DEBUG("    Set program string : ", program[i]);
+              */
               state = RUNNING;
 
 	    } else if (rxc > 5 && !strncmp((char*)buffer, "$RGB", 4) && rxc == 3*((uint16_t*)(buffer))[2]+6) {
@@ -264,7 +268,6 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
 	    } else if (rxc == 26 && !strncmp((char*)buffer, "$FW", 3)) {
               state = FIREWORKS;
               stopFireworks();
-              DEBUG("Calling launch...");
               launch(buffer); 
 	    } else if (!strncmp((char*)buffer, "$OFF", 4)) {
               fill_solid(leds, NUM_LEDS, CRGB::Black);
