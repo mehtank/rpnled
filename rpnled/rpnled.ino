@@ -125,8 +125,8 @@ void setup() {
   //sprintf(mDNS_name, "led_%08X", ESP.getChipId());
 
   LED_ON;
-  // setupSTA(sta_ssid, sta_password);
-  setupAP(ap_ssid, ap_password);
+  setupSTA(sta_ssid, sta_password);
+  // setupAP(ap_ssid, ap_password);
   LED_OFF;
 
   setupNTP();
