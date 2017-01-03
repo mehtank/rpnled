@@ -139,9 +139,9 @@ REGISTER_STARS( star_fade,
                 star_sparkle );
 
 STARUPDATE(star_fade,
-  p->color.val -= ( p->param1 );
-  if (p->color.val < 10) 
+  if (p->color.val < p->param1) 
     return true;
+  p->color.val -= ( p->param1 );
   return false;
 )
 
@@ -197,7 +197,7 @@ STARUPDATE(burststar,
   for (int j = 0; j < p->substars; j++) {
     if (Particle *p2 = spawn(p->star)) {
       p2->x = p->x;
-      p2->v = (j*2 - p->substars + 1)*p2->spread;
+      p2->v = (j*2 - p->substars + 1)*p->spread;
       p2->cv = 1;
       p2->g = 1;
     }
@@ -247,15 +247,9 @@ void updatefireworks() {
   }
 }
 
-void launch(Particle *pi) {
-  Particle mortar;
-  mortar = *pi;
-  mortar.color = DEFAULT_COLOR;
-  mortar.fn = NULL;
-  mortar.star = pi;
-  mortar.star->substars = 0;
-
-  Particle *p = spawn(&mortar);
+void launch(Particle *mortar, Particle *star) {
+  mortar->star = star;
+  Particle *p = spawn(mortar);
 
   for (int i = 0; i < 4; i++) {
     if (Particle *p = spawn(GROUND, LED2X(1) + random(LED2X(1)), CHSV(40, 128, 255))) {
@@ -263,6 +257,18 @@ void launch(Particle *pi) {
       p->param1 = 10;
     }
   }
+}
+
+void launch(Particle *pi) {
+  Particle mortar;
+  mortar = *pi;
+  mortar.color = DEFAULT_COLOR;
+  mortar.fn = star_fade;
+  mortar.param1 = 1;
+
+  pi->substars = 0;
+
+  launch(&mortar, pi);
 }
 
 void launch(uint8_t t, uint8_t hue, uint8_t sat) {
@@ -351,6 +357,14 @@ void fireworksEvent(uint8_t* buffer, uint8_t rxc) {
 			Particle *p = (Particle*)(&buffer[4]);
 			p->fn = starfns[t];
 			launch(p);
+    } else if (rxc == sizeof(Particle) * 2 + 5) {
+			uint8_t mt = buffer[3]; 
+			uint8_t st = buffer[4 + sizeof(Particle)*2];
+			Particle *mortar = (Particle*)(&buffer[4]);
+			Particle *star = (Particle*)(&buffer[4 + sizeof(Particle)]);
+			mortar->fn = starfns[mt];
+			star->fn = starfns[st];
+			launch(mortar, star);
 		} 
 	}
 }
