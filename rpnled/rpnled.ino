@@ -7,6 +7,8 @@
 #include <ESP8266WebServer.h>
 #include <WebSocketsServer.h>
 #include <ESP8266mDNS.h>
+#include <WiFiUdp.h>
+#include <ArduinoOTA.h>
 
 #include <TimeLib.h>
 #include <NtpClientLib.h>
@@ -137,6 +139,8 @@ void setup() {
   setupHTTP();
   setupWS(webSocketEvent);
   setupMDNS(mDNS_name);
+  ArduinoOTA.setHostname(mDNS_name);
+  ArduinoOTA.begin();
   setupNYE(leds, NUM_LEDS);
   setupFireworks(leds, NUM_LEDS);
 }
@@ -155,6 +159,7 @@ void loop() {
   // Handle server stuff
   wsLoop();
   httpLoop();
+  ArduinoOTA.handle();
   //breatheLoop();
 
   // Update the colors.
