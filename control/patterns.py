@@ -164,3 +164,23 @@ dots = makepattern([
     C_INDEX, '$gapshift_7', C_TIMESHIFT, C_MINUS, '$gap_7', C_BITAND, 0, 255, C_IFTE,
   C_HSV
 ])
+
+vday = makepattern([
+  C_INDEX, '$dotshift_7', C_TIMESHIFT, C_MINUS, '$dotpattern_10', C_BITAND, C_STB, 
+      C_REGB, 
+      '$hue1_220_h', 
+      '$hue2_0_h', 
+    C_IFTE, 
+      C_REGB, 
+      C_INDEX, '$pulseshift_4', C_TIMESHIFT, C_PLUS, 
+        63, C_BITAND, 
+        1, C_LSHIFT, 
+        64, C_DIFF, 
+        33, C_MINUS, 
+        0, C_MAX, 
+        3, C_LSHIFT, 
+      255, 
+    C_IFTE, 
+    '$value_255', 
+  C_HSV
+])
