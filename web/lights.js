@@ -219,8 +219,8 @@ function upload() {
   connection_send(bytes);
 }
 
-function blink() {
-  var bytes = [36, 66, 76, 73, 78, 75]; // $BLINK
+function sendcmd(bytes) {
+  //var bytes = [36, 66, 76, 73, 78, 75]; // $BLINK
   connection_send(bytes);
 }
 
