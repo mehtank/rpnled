@@ -1,3 +1,11 @@
+#define CONFIG_NTP
+#define CONFIG_AP
+#define CONFIG_STA
+#define CONFIG_OTA
+
+#undef  CONFIG_NTP
+#undef  CONFIG_OTA
+
 #include <Arduino.h>
 
 #include <Hash.h>
@@ -8,10 +16,15 @@
 #include <WebSocketsServer.h>
 #include <ESP8266mDNS.h>
 #include <WiFiUdp.h>
-#include <ArduinoOTA.h>
 
+#ifdef CONFIG_OTA
+#include <ArduinoOTA.h>
+#endif
+
+#ifdef CONFIG_NTP
 #include <TimeLib.h>
 #include <NtpClientLib.h>
+#endif
 
 #include "FastLED.h"
 #include "commands.h"
@@ -70,6 +83,7 @@ String js;
  * NTP callbacks
  ************************/
 
+#ifdef CONFIG_NTP
 void onSTAGotIP(WiFiEventStationModeGotIP ipInfo) {
 	DEBUG("Got IP: ", ipInfo.ip.toString().c_str());
 	NTP.begin("tick.ucla.edu", 1, true);
@@ -103,6 +117,7 @@ void setupNTP() {
 	e1 = WiFi.onStationModeGotIP(onSTAGotIP);// As soon WiFi is connected, start NTP Client
 	e2 = WiFi.onStationModeDisconnected(onSTADisconnected);
 }
+#endif
 
 /************************
  * Set up pins, LEDs, wifi
@@ -125,11 +140,17 @@ void setup() {
   //sprintf(mDNS_name, "led_%08X", ESP.getChipId());
 
   LED_ON;
+#ifdef CONFIG_STA
   setupSTA(sta_ssid, sta_password);
-  // setupAP(ap_ssid, ap_password);
+#endif
+#ifdef CONFIG_AP
+  setupAP(ap_ssid, ap_password);
+#endif
   LED_OFF;
 
+#ifdef CONFIG_NTP
   setupNTP();
+#endif
   setupFile();
   html = loadFile("/index.html");
   DEBUG("  loaded html: ", html.length());
@@ -141,6 +162,7 @@ void setup() {
   setupHTTP();
   setupWS(webSocketEvent);
   setupMDNS(mDNS_name);
+#ifdef CONFIG_OTA
   ArduinoOTA.setHostname(mDNS_name);
   ArduinoOTA.begin();
   ArduinoOTA.onStart([]() {
@@ -149,6 +171,7 @@ void setup() {
   ArduinoOTA.onEnd([]() {
     otaPause = false;
   });
+#endif
   setupNYE(leds, NUM_LEDS);
   setupFireworks(leds, NUM_LEDS);
 }
@@ -165,7 +188,10 @@ void loop() {
   static uint32_t last = 0;
 
   // Handle server stuff
+#ifdef CONFIG_OTA
   ArduinoOTA.handle();
+#endif
+
   if (!otaPause) {
     wsLoop();
     httpLoop();
