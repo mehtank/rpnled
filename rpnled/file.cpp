@@ -23,8 +23,9 @@ String loadFile(const char* filename) {
 
         String text = "";
         while (file.available()) {
-            text += file.readStringUntil('\n');
-            text += "\n";
+            // text += file.readStringUntil('\n');
+            // text += "\n";
+            text += (char)file.read();
         }
         file.close();
         return text;
