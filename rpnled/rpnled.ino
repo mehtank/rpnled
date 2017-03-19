@@ -52,8 +52,8 @@ const int STRIP_PIN = 5;
 CRGB leds[NUM_LEDS];
 
 // Create a buffer for holding the program
-int16_t program[PROGLEN] = {4, C_TIMESHIFT, C_INDEX, 3, C_LSHIFT, C_MINUS, 255, C_BITAND, C_HUE};
-uint8_t proglen = 9;
+int16_t program[PROGLEN] = {4, C_TIMESHIFT, C_INDEX, 3, C_LSHIFT, C_MINUS, 255, C_BITAND, 255, 96, C_HSV};
+uint8_t proglen = 11;
 
 enum ProgramState {STOPPED, RUNNING, ONCE, REDRAW, NYE, FIREWORKS};
 ProgramState state = RUNNING;
