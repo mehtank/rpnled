@@ -3,6 +3,7 @@
 #define CONFIG_STA
 #define CONFIG_OTA
 
+#undef  CONFIG_STA
 #undef  CONFIG_NTP
 #undef  CONFIG_OTA
 
