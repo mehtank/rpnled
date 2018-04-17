@@ -184,3 +184,115 @@ vday = makepattern([
     '$value_255', 
   C_HSV
 ])
+
+
+xmastree = makepattern([
+  C_INDEX, 285, C_GT, C_STA,
+  7, C_TIMESHIFT, C_INDEX, C_MINUS, 75, C_MOD, C_NOT, C_STB,
+  C_INDEX, 29, C_BITAND, C_NOT, C_STC,
+
+        C_REGA,
+        '$starh_50_h',
+        C_REGB,
+        '$runnerh_50_h',
+            C_REGC,
+            '$ornamenth_0_h',
+            90,
+        C_IFTE,
+        C_IFTE,
+    C_IFTE,
+        C_REGB, C_REGA, C_NOT, C_AND,
+        0,
+        255, 
+    C_IFTE,
+        C_REGA,
+        '$starv_96_v',
+        C_REGB,
+        '$runnerv_96_v',
+        '$treev_32_v',
+        C_IFTE,
+    C_IFTE,
+  C_HSV
+])
+
+xmastree2 = makepattern([
+  C_INDEX, 285, C_GT,
+    C_STA,
+
+  '$speed_12', C_TIMESHIFT,
+    C_STB,
+  C_INDEX, C_REGB, C_REGB, C_TIMES, C_REGB, C_BITXOR,
+  15, C_BITAND, 15, C_PLUS, C_MOD, C_NOT,
+    C_STB,
+
+  C_INDEX, 29, C_BITAND, C_NOT,
+    C_STC,
+
+  255, '$speed', 8, C_MINUS, C_TIMESHIFT, 255, C_BITAND,
+  2, C_TIMES, 255, C_MINUS, C_ABS, C_MINUS,
+    C_STD,
+
+        C_REGA,
+        '$starh_50_h',
+        C_REGB,
+        '$runnerh_90_h',
+            C_REGC,
+            '$ornamenth_0_h',
+            90,
+        C_IFTE,
+        C_IFTE,
+    C_IFTE,
+        C_REGB, C_REGA, C_NOT, C_AND,
+        255, C_REGD, C_MINUS,
+        255,
+    C_IFTE,
+        C_REGA,
+        '$treev_32_v', 3, C_TIMES,
+        C_REGB,
+        '$treev_32_v', C_REGD, C_PLUS, 255, C_MIN,
+        '$treev_32_v',
+        C_IFTE,
+    C_IFTE,
+  C_HSV
+])
+
+xmastree3 = makepattern([
+  C_INDEX, 285, C_GT,
+    C_STA,
+
+  '$speed_10', C_TIMESHIFT,
+    C_STB,
+  C_REGB, C_REGB, C_TIMES, C_REGB, C_BITXOR,
+  15, C_BITAND, 5, C_PLUS,
+    C_STB,
+
+  C_INDEX, '$orn_27', C_MOD, 2, C_BITNOT, C_BITAND, C_NOT, C_STC,
+
+  255, '$speed', 8, C_MINUS, C_TIMESHIFT, 255, C_BITAND,
+    C_STD,
+
+  285, C_REGD, 5, C_RSHIFT, 20, C_REGD, 5, C_RSHIFT, 1, C_LSHIFT, C_PLUS, C_TIMES, C_REGB, C_PLUS, C_MINUS, C_INDEX, C_EQ, C_STB,
+
+        C_REGA,
+        '$starh_50_h',
+        C_REGB,
+        '$runnerh_90_h',
+            C_REGC,
+            '$ornamenth_0_h',
+            90,
+        C_IFTE,
+        C_IFTE,
+    C_IFTE,
+        C_REGB, C_REGA, C_NOT, C_AND,
+        C_REGD,
+        255,
+    C_IFTE,
+        C_REGA,
+        '$treev_32_v', 3, C_TIMES, 255, C_MIN,
+        C_REGB,
+        255, C_REGD, C_MINUS, '$treev_32_v', C_MAX,
+        '$treev_32_v',
+        C_IFTE,
+    C_IFTE,
+  C_HSV
+])

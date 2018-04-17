@@ -1,1 +1,117 @@
-../../web/index.html
+<html>
+<body bgcolor=black text=white>
+
+<script type="text/javascript" src=led.js></script>
+
+<div id="wrapper">
+
+<div style="position: absolute; left: 10px; top: 10px;">
+  <canvas id=lights width=1020 height=1020></canvas>
+</div>
+
+<div style="position: absolute; left: 50px; top: 50px; z-index: 1;">
+  <table border=0 style="width:920px;">
+    <tr> <td>
+      <div id=code_buttons> </div> <br>
+      <div id=code_text> 
+        <textarea id=code_raw rows=25 cols=40></textarea>
+      </div> <br>
+      <div id=code_widgets> </div> <br>
+      <div id=prog_buttons> 
+        <button id=go onclick="prog()">Simulate</button>
+        <button id=go onclick="reprog()">Reload</button>
+        <button id=go onclick="upload()">Upload</button>
+        <button id=go onclick="sendcmd([36,66,76,73,78,75])">Blink</button>
+        <button id=go onclick="sendcmd([36,70,87,83,84,65,82,84])">Fireworks</button>
+      </div> <br>
+      <div id=run_buttons> 
+        <button id=go onclick="loop(0)">Run once / stop</button>
+        <button id=go onclick="loop(1)">Run forever</button>
+      </div> <br>
+      <div id=code> </div> <br>
+    </td><td>
+      <b>Known operators: </b><br>
+       <br>
+C_RGB<br>
+C_HSV<br>
+C_HUE<br>
+C_VALUE<br>
+<br>
+C_TIME<br>
+C_TIMESHIFT<br>
+C_INDEX<br>
+C_RANDOM8<br>
+C_RANDC<br>
+<br>
+C_RSHIFT<br>
+C_LSHIFT<br>
+C_BITAND<br>
+C_BITOR<br>
+C_BITXOR<br>
+C_BITNOT<br>
+C_AND<br>
+C_OR<br>
+C_NOT<br>
+</td><td><br>
+C_PLUS<br>
+C_MINUS<br>
+C_TIMES<br>
+C_DIVIDE<br>
+C_MOD<br>
+C_INC<br>
+C_DEC<br>
+C_DIFF<br>
+<br>
+C_EQ<br>
+C_NE<br>
+C_GT<br>
+C_GE<br>
+C_LT<br>
+C_LE<br>
+<br>
+C_IFTE<br>
+<br>
+C_ABS<br>
+C_MIN<br>
+C_MAX<br>
+<br>
+C_REGA<br>
+C_REGB<br>
+C_REGC<br>
+C_REGD<br>
+C_REGZ<br>
+C_REGN<br>
+C_REGCYC<br>
+<br>
+C_STA<br>
+C_STB<br>
+C_STC<br>
+C_STD<br>
+C_STZ<br>
+C_STN<br>
+C_STCYC<br>
+</td><td><br>
+C_STAIF<br>
+C_STBIF<br>
+C_STCIF<br>
+C_STDIF<br>
+C_STZIF<br>
+C_STNIF<br>
+C_STCYCIF<br>
+<br>
+C_LOOPSTART<br>
+C_LOOPREG<br>
+C_LOOPMAX<br>
+<br>
+C_TDIFF<br>
+C_IDIFF<br>
+<br>
+C_PRINT<br>
+    </td></tr>
+  </table>
+</div>
+
+</div>
+
+</body>
+</html>
