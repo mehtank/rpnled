@@ -1,4 +1,3 @@
-#include <Arduino.h>
 #include "debug.h"
 #include "FastLED.h"
 #include "TimeLib.h"

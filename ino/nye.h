@@ -1,10 +1,6 @@
-#include <Arduino.h>
-#include "FastLED.h"
+#pragma once
 
-#ifndef __NYE_H
-#define __NYE_H
+#include "FastLED.h"
 
 void setupNYE(CRGB *leds, int NUM_LEDS);
 void nyeLoop();
-
-#endif

@@ -1,8 +1,6 @@
-#include "Arduino.h"
-#include "FastLED.h"
+#pragma once
 
-#ifndef __COMMANDS_H
-#define __COMMANDS_H
+#include "FastLED.h"
 
 // CONST
 
@@ -10,5 +8,3 @@
 #define MAX(X,Y) (((X) > (Y)) ? (X) : (Y))
 
 CRGB runCmd(int16_t *cmd, uint8_t cmdlen, uint32_t time, uint16_t index, uint8_t rnd);
-
-#endif // ndef __COMMANDS_H

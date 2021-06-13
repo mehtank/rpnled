@@ -7,17 +7,6 @@
 #undef  CONFIG_NTP
 #undef  CONFIG_OTA
 
-#include <Arduino.h>
-
-#include <Hash.h>
-#include <FS.h>
-#include <ESP8266WiFi.h>
-#include <WiFiClient.h>
-#include <ESP8266WebServer.h>
-#include <WebSocketsServer.h>
-#include <ESP8266mDNS.h>
-#include <WiFiUdp.h>
-
 #ifdef CONFIG_OTA
 #include <ArduinoOTA.h>
 #endif

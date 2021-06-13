@@ -1,7 +1,6 @@
-#include <WebSocketsServer.h>
+#pragma once
 
-#ifndef __SERVER_H
-#define __SERVER_H
+#include <WebSocketsServer.h>
 
 typedef void (*ws_callback_t)(uint8_t, WStype_t, uint8_t* , size_t);
 
@@ -14,5 +13,3 @@ void setupMDNS(char* name) ;
 
 void httpLoop();
 void wsLoop();
-
-#endif

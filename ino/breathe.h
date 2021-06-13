@@ -1,12 +1,8 @@
-#include <Arduino.h>
+#pragma once
 
-#ifndef __BREATHE_H
-#define __BREATHE_H
+#define BREATHE_PIN D4
+#define BREATHE_ON digitalWrite(BREATHE_PIN, LOW)
+#define BREATHE_OFF digitalWrite(BREATHE_PIN, HIGH)
 
-#  define BREATHE_PIN D4
-#  define BREATHE_ON digitalWrite(BREATHE_PIN, LOW)
-#  define BREATHE_OFF digitalWrite(BREATHE_PIN, HIGH)
+void breatheLoop();
 
-   void breatheLoop();
-
-#endif
