@@ -106,9 +106,12 @@ with open(WEB_DIR + "/patterns.js", "w") as js:
   js.write("};")
 
 import os
-os.chdir(WEB_DIR)
-os.system("cat  const.js patterns.js runcmd.js lights.js > led.js")
-
 from css_html_js_minify import process_single_html_file, process_single_js_file
 
+os.chdir(WEB_DIR)
+os.system("cat  const.js patterns.js runcmd.js lights.js > led.js")
 process_single_js_file("led.js", "w")
+os.system("gzip -f led.min.js")
+os.system("gzip -f led.js")
+os.system("gzip -f index.html")
+os.system(f"/bin/bash -c \"cat <(xxd -i index.html.gz) <(xxd -i led.js.gz) | sed 's/unsigned/const unsigned/' | sed 's/\[\] =/\[\] PROGMEM =/' > ../{INO_DIR}/files.h\" ")

@@ -1,29 +1,9 @@
-#define CONFIG_NTP
-#define CONFIG_AP
-#define CONFIG_STA
-#define CONFIG_OTA
-
-#undef  CONFIG_STA
-#undef  CONFIG_NTP
-#undef  CONFIG_OTA
-
-#ifdef CONFIG_OTA
-#include <ArduinoOTA.h>
-#endif
-
-#ifdef CONFIG_NTP
-#include <TimeLib.h>
-#include <NtpClientLib.h>
-#endif
-
+#include "mydebug.h"
+#include <myota.h>
+#include <ESPAsyncWebServer.h>
 #include "FastLED.h"
 #include "commands.h"
-
-#include "breathe.h"
-#include "debug.h"
-#include "file.h"
-#include "server.h"
-#include "nye.h"
+#include "files.h"
 #include "fireworks.h"
 
 
@@ -45,225 +25,123 @@ CRGB leds[NUM_LEDS];
 int16_t program[PROGLEN] = {4, C_TIMESHIFT, C_INDEX, 3, C_LSHIFT, C_MINUS, 255, C_BITAND, 255, 96, C_HSV};
 uint8_t proglen = 11;
 
-enum ProgramState {STOPPED, RUNNING, ONCE, REDRAW, NYE, FIREWORKS};
+enum ProgramState {STOPPED, RUNNING, ONCE, REDRAW, FIREWORKS};
 ProgramState state = RUNNING;
 
-bool otaPause = false;
+uint8_t loopcnt = 0;
+uint32_t offat = 0;
 
 /************************
  * Wireless parameters
  ************************/
 
+static const char* SSID       = "torii";
+static const char* PASS       = "6283185307";
+static const char* MDNM       = "tableled";
+
 // WiFi AP parameters
 char* ap_ssid = "ESP_xxxxxxxx";
 char* ap_password = "";
 
-// WiFi STA parameters
-char* sta_ssid = 
-  "DG1670AF2"; //gitignore  "...";
-char* sta_password = 
-  "DG1670A6ACDF2"; //gitignore  "...";
-
-char* mDNS_name = "lrled";
-
-String html;
-String js;
-
 /************************
- * NTP callbacks
+ * Web server
  ************************/
 
-#ifdef CONFIG_NTP
-void onSTAGotIP(WiFiEventStationModeGotIP ipInfo) {
-	DEBUG("Got IP: ", ipInfo.ip.toString().c_str());
-	NTP.begin("tick.ucla.edu", 1, true);
-	NTP.setInterval(20);
-	NTP.setTimeZone(-8);
-}
+AsyncWebServer httpServer(80);
+AsyncWebSocket ws("/ws");
 
-void onSTADisconnected(WiFiEventStationModeDisconnected event_info) {
-	DEBUG("Disconnected from SSID: ", event_info.ssid.c_str());
-	DEBUG("Reason: ", event_info.reason);
-}
-
-void setupNTP() {
-	static WiFiEventHandler e1, e2;
-
-	NTP.onNTPSyncEvent([](NTPSyncEvent_t ntpEvent) {
-		if (ntpEvent) {
-			DEBUG("Time Sync error: ");
-			if (ntpEvent == noResponse)
-				DEBUG("  NTP server not reachable");
-			else if (ntpEvent == invalidAddress)
-				DEBUG("  Invalid NTP server address");
-		}
-		else {
-			DEBUG("Got NTP time: ", NTP.getTimeDateString(NTP.getLastNTPSync()));
-		}
-	});
-	WiFi.onEvent([](WiFiEvent_t e) {
-		Serial.printf("Event wifi -----> %d\n", e);
-	});
-	e1 = WiFi.onStationModeGotIP(onSTAGotIP);// As soon WiFi is connected, start NTP Client
-	e2 = WiFi.onStationModeDisconnected(onSTADisconnected);
-}
-#endif
-
-/************************
- * Set up pins, LEDs, wifi
- ************************/
-
-void setup() {
-  Serial.begin(115200);
-  DEBUG("Started serial");
-
-  pinMode(BREATHE_PIN, OUTPUT);    //Set LED pin
-  BREATHE_OFF;                     //Turn off LED
-
-  pinMode(LED_PIN, OUTPUT);    //Set LED pin
-  LED_OFF;                     //Turn off LED
-
-
-  FastLED.addLeds<NEOPIXEL, STRIP_PIN>(leds, NUM_LEDS);
-
-  sprintf(ap_ssid, "ESP_%08X", ESP.getChipId());
-  //sprintf(mDNS_name, "led_%08X", ESP.getChipId());
-
-  LED_ON;
-#ifdef CONFIG_STA
-  setupSTA(sta_ssid, sta_password);
-#endif
-#ifdef CONFIG_AP
-  setupAP(ap_ssid, ap_password);
-#endif
-  LED_OFF;
-
-#ifdef CONFIG_NTP
-  setupNTP();
-#endif
-  setupFile();
-  html = loadFile("/index.html");
-  DEBUG("  loaded html: ", html.length());
-  js = loadFile("/led.js");
-  DEBUG("  loaded js: ", js.length());
-  registerPage("/", "text/html", html);
-  registerPage("/led.js", "text/javascript", js);
-
-  setupHTTP();
-  setupWS(webSocketEvent);
-  setupMDNS(mDNS_name);
-#ifdef CONFIG_OTA
-  ArduinoOTA.setHostname(mDNS_name);
-  ArduinoOTA.begin();
-  ArduinoOTA.onStart([]() {
-    otaPause = true;
+#define STATIC(page, type, pg)                                          \
+  httpServer.on(page, HTTP_GET, [](AsyncWebServerRequest *request){     \
+    AsyncWebServerResponse *response =                                  \
+    request->beginResponse_P(200, "text/" type, pg##_gz, pg##_gz_len);\
+    response->addHeader("Content-Encoding", "gzip");                    \
+    request->send(response);                                            \
   });
-  ArduinoOTA.onEnd([]() {
-    otaPause = false;
-  });
-#endif
-  setupNYE(leds, NUM_LEDS);
-  setupFireworks(leds, NUM_LEDS);
-}
-
-/************************
- * Do LED loop
- ************************/
-
-uint8_t loopcnt = 0;
-uint32_t offat = 0;
-
-void loop() {
-  static uint32_t time = 0;
-  static uint32_t last = 0;
-
-  // Handle server stuff
-#ifdef CONFIG_OTA
-  ArduinoOTA.handle();
-#endif
-
-  if (!otaPause) {
-    wsLoop();
-    httpLoop();
-    //breatheLoop();
-
-    // Update the colors.
-    time = millis();
-
-    if ((time - last) > 1100) {
-      last = time;
-      // time_t t = NTP.getTime(); // forces resync
-      //DEBUG("hour: ", hour());
-      //DEBUG("minute: ", minute());
-      //DEBUG("second: ", second());
-    }
-
-    if (time > offat) LED_OFF;
-
-    switch (state) {
-      case STOPPED:
-        break;
-
-      case ONCE:
-        state = STOPPED;
-      case RUNNING: {
-        uint8_t rnd = random(256);
-        for(uint16_t i = 0; i < NUM_LEDS; i++)   
-          leds[i] = runCmd(program, proglen, time, i, rnd);
-        FastLED.show(); // display this frame
-        break;
-      }
-
-      case REDRAW:
-        FastLED.show(); // display this frame
-        break;
-      case NYE:
-        nyeLoop();
-        FastLED.show(); // display this frame
-        break;
-      case FIREWORKS:
-        fireworksLoop();
-        FastLED.show(); // display this frame
-        break;
-    }
-  }
-}
 
 /************************
  * Handle websocket
  ************************/
 
-void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
-    switch(type) {
-        case WStype_DISCONNECTED:
-	    DEBUG("Connection started : ", num);
-            break;
-        case WStype_CONNECTED: 
-            // IPAddress ip = webSocket.remoteIP(num);
-            // Serial.printf("[%u] Connected from %d.%d.%d.%d url: %s\n", num, ip[0], ip[1], ip[2], ip[3], payload);
-            DEBUG("Web socket connected");
+void webSocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, 
+             void * arg, uint8_t *data, size_t len){
 
-            // send message to client
-            // webSocket.sendTXT(num, "Connected");
-            break;
-        case WStype_BIN:
-            /*
-	    DEBUG("On connection : ", num);
-	    DEBUG("  Got buffer of length : ", rxc);
-	    DEBUG("  Length byte: ", buffer[5]);
-            for (int i = 0; i < rxc; i++)
-              DEBUG("    char : ", buffer[i]);
-            */
+  switch (type) {
+    case WS_EVT_CONNECT:
+      //client connected
+      DEBUGF("ws[%s][%u] connect\n", server->url(), client->id());
+      client->printf("Hello Client %u :)", client->id());
+      client->ping();
+      break;
+    case WS_EVT_DISCONNECT:
+      //client disconnected
+      DEBUGF("ws[%s][%u] disconnect: %u\n", server->url(), client->id());
+      break;
+    case WS_EVT_ERROR:
+      //error was received from the other end
+      DEBUGF("ws[%s][%u] error(%u): %s\n", server->url(), client->id(), *((uint16_t*)arg), (char*)data);
+      break;
+    case WS_EVT_PONG:
+      //pong message was received (in response to a ping request maybe)
+      DEBUGF("ws[%s][%u] pong[%u]: %s\n", server->url(), client->id(), len, (len)?(char*)data:"");
+      break;
+    case WS_EVT_DATA:
+      //data packet
+      AwsFrameInfo * info = (AwsFrameInfo*)arg;
+      if(info->final && info->index == 0 && info->len == len){
+        //the whole message is in a single frame and we got all of it's data
+        DEBUGF("ws[%s][%u] %s-message[%llu]: ", server->url(), client->id(), (info->opcode == WS_TEXT)?"text":"binary", info->len);
+        if(info->opcode == WS_TEXT){
+          data[len] = 0;
+          DEBUGF("%s\n", (char*)data);
+        } else {
+          for(size_t i=0; i < info->len; i++){
+            DEBUGF("%02x ", data[i]);
+          }
+          DEBUGF("\n");
+        }
+        if(info->opcode == WS_TEXT)
+          client->text("I got your text message");
+        else
+          client->binary("I got your binary message");
+      } else {
+        //message is comprised of multiple frames or the frame is split into multiple packets
+        if(info->index == 0){
+          if(info->num == 0)
+            DEBUGF("ws[%s][%u] %s-message start\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+          DEBUGF("ws[%s][%u] frame[%u] start[%llu]\n", server->url(), client->id(), info->num, info->len);
+        }
+
+      DEBUGF("ws[%s][%u] frame[%u] %s[%llu - %llu]: ", server->url(), client->id(), info->num, (info->message_opcode == WS_TEXT)?"text":"binary", info->index, info->index + len);
+      if(info->message_opcode == WS_TEXT){
+        data[len] = 0;
+        DEBUGF("%s\n", (char*)data);
+      } else {
+        for(size_t i=0; i < len; i++){
+          DEBUGF("%02x ", data[i]);
+        }
+        DEBUGF("\n");
+      }
+
+      if((info->index + len) == info->len){
+        DEBUGF("ws[%s][%u] frame[%u] end[%llu]\n", server->url(), client->id(), info->num, info->len);
+        if(info->final){
+          DEBUGF("ws[%s][%u] %s-message end\n", server->url(), client->id(), (info->message_opcode == WS_TEXT)?"text":"binary");
+          if(info->message_opcode == WS_TEXT)
+            client->text("I got your text message");
+          else
+            client->binary("I got your binary message");
+        }
+      }
+    }
+  }
+}
+
+void handleString(int rxc, uint8_t * buffer) {
 
 	    if (rxc > 5 && !strncmp((char*)buffer, "$PROG", 5) && rxc == 2*buffer[5]+6) {
 	      memcpy((char*)program, &buffer[6], rxc-5);
 	      proglen = (rxc-6)/2;
 
-              /*
-	      DEBUG("  Set program length : ", proglen);
-	      for (int i = 0; i < proglen; i++)
-		DEBUG("    Set program string : ", program[i]);
-              */
               state = RUNNING;
 
 	    } else if (rxc > 5 && !strncmp((char*)buffer, "$RGB", 4) && rxc == 3*((uint16_t*)(buffer))[2]+6) {
@@ -280,22 +158,91 @@ void webSocketEvent(uint8_t num, WStype_t type, uint8_t * buffer, size_t rxc) {
               state = RUNNING;
 	    } else if (!strncmp((char*)buffer, "$NEXT", 5)) {
               state = ONCE;
-	    } else if (!strncmp((char*)buffer, "$NYE", 4)) {
-              state = NYE;
 	    } else if (!strncmp((char*)buffer, "$FW", 3)) {
               state = FIREWORKS;
               fireworksEvent(buffer, rxc); 
 	    } else if (!strncmp((char*)buffer, "$OFF", 4)) {
               fill_solid(leds, NUM_LEDS, CRGB::Black);
               state = REDRAW;
-            }
-	    break;
-        case WStype_TEXT:
-            Serial.printf("[%u] get text: %s\n", num, buffer);
-            break;
-        default:
-            DEBUG("Unknown type : ", type);
-            DEBUG("Unknown len : ", rxc);
-    }
+        }
 }
 
+/************************
+ * Set up pins, LEDs, wifi
+ ************************/
+
+void setup() {
+  DEBUG_START;
+  DEBUG("Started serial");
+
+  pinMode(LED_PIN, OUTPUT);    //Set LED pin
+  LED_OFF;                     //Turn off LED
+
+  FastLED.addLeds<NEOPIXEL, STRIP_PIN>(leds, NUM_LEDS);
+
+  sprintf(ap_ssid, "ESP_%08X", ESP.getChipId());
+
+  LED_ON;
+  LED_OFF;
+
+  ota_init(SSID, PASS, MDNM);
+
+  STATIC("/", "html", index_html);
+  STATIC("/led.js", "javascript", led_js);
+  ws.onEvent(webSocketEvent);
+  httpServer.addHandler(&ws);
+
+  httpServer.begin();
+
+  setupFireworks(leds, NUM_LEDS);
+}
+
+/************************
+ * Do LED loop
+ ************************/
+
+void loop() {
+  static uint32_t time = 0;
+  static uint32_t last = 0;
+
+  // Handle server stuff
+  ota_loop();
+
+  //breatheLoop();
+
+  // Update the colors.
+  time = millis();
+
+  if ((time - last) > 1100) {
+    last = time;
+    // time_t t = NTP.getTime(); // forces resync
+    //DEBUG("hour: ", hour());
+    //DEBUG("minute: ", minute());
+    //DEBUG("second: ", second());
+  }
+
+  if (time > offat) LED_OFF;
+
+  switch (state) {
+    case STOPPED:
+      break;
+
+    case ONCE:
+      state = STOPPED;
+    case RUNNING: {
+      uint8_t rnd = random(256);
+      for(uint16_t i = 0; i < NUM_LEDS; i++)   
+        leds[i] = runCmd(program, proglen, time, i, rnd);
+      FastLED.show(); // display this frame
+      break;
+    }
+
+    case REDRAW:
+      FastLED.show(); // display this frame
+      break;
+    case FIREWORKS:
+      fireworksLoop();
+      FastLED.show(); // display this frame
+      break;
+  }
+}

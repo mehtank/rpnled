@@ -1,4 +1,4 @@
-#include "debug.h"
+#include "mydebug.h"
 #include "FastLED.h"
 #include "fireworks.h"
 
@@ -156,7 +156,7 @@ STARUPDATE(star_fade,
 STARUPDATE(star_satfade,
   p->color.val -= ( p->param1 );
   uint16_t sat = p->color.sat + 2*p->param1;
-  p->color.sat = min(sat, 255);
+  p->color.sat = min(sat, (uint16_t) 255);
   if (p->color.val < 10) 
     return true;
   return false;
@@ -175,7 +175,7 @@ STARUPDATE(star_rainbowsatfade,
   if (p->color.val == 255)
     p->color.hue = random(255);
   uint16_t sat = p->color.sat + 2*p->param1;
-  p->color.sat = min(sat, 255);
+  p->color.sat = min(sat, (uint16_t) 255);
   p->color.val -= ( p->param1 );
   if (p->color.val < 10) 
     return true;

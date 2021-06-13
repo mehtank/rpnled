@@ -7,7 +7,7 @@
 int16_t stack[STACK_SIZE];
 uint8_t stack_ptr = 0;
 
-CRGB runCmd(int16_t *cmd, uint8_t cmdlen, uint32_t time, uint16_t index, uint8_t rnd) {
+CRGB runCmd(int16_t *cmd, uint8_t cmdlen, int16_t time, uint16_t index, uint8_t rnd) {
   static int16_t reg[REG_IDX + 1];
   stack_ptr = 0;
 

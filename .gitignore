@@ -1,5 +1,6 @@
 *.pyc
 *.swp
+.build
 
 web/const.js
 web/index.html
