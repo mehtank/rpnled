@@ -1,14 +1,18 @@
-#include "mydebug.h"
+#define LED_PIN 1
+
+#include <mydebug.h>
+#include <breathe.h>
 #include <myota.h>
 #include <ESPAsyncWebServer.h>
-#include "FastLED.h"
+#include <FastLED.h>
+
 #include "commands.h"
 #include "files.h"
 #include "fireworks.h"
 
 
 /************************
- * LED strip parameters
+ * LED strip configuration
  ************************/
 
 #define NUM_LEDS 300
@@ -16,20 +20,9 @@
 #define PROGLEN 200
 #define BUFLEN PROGLEN*2 + 6
 
-const int STRIP_PIN = 5;
-
-// Create a buffer for holding the colors (3 bytes per color).
-CRGB leds[NUM_LEDS];
-
-// Create a buffer for holding the program
-int16_t program[PROGLEN] = {4, C_TIMESHIFT, C_INDEX, 3, C_LSHIFT, C_MINUS, 255, C_BITAND, 255, 96, C_HSV};
-uint8_t proglen = 11;
+const int STRIP_PIN = 2;
 
 enum ProgramState {STOPPED, RUNNING, ONCE, REDRAW, FIREWORKS};
-ProgramState state = RUNNING;
-
-uint8_t loopcnt = 0;
-uint32_t offat = 0;
 
 /************************
  * Wireless parameters
@@ -42,6 +35,24 @@ static const char* MDNM       = "tableled";
 // WiFi AP parameters
 char* ap_ssid = "ESP_xxxxxxxx";
 char* ap_password = "";
+
+/************************
+ * RPNLED globals
+ ************************/
+
+Breathe breathe(LED_PIN);
+
+// Create a buffer for holding the colors (3 bytes per color).
+CRGB leds[NUM_LEDS];
+
+// Create a buffer for holding the program
+int16_t program[PROGLEN] = {4, C_TIMESHIFT, C_INDEX, 3, C_LSHIFT, C_MINUS, 255, C_BITAND, 255, 96, C_HSV};
+uint8_t proglen = 11;
+
+ProgramState state = RUNNING;
+
+uint8_t loopcnt = 0;
+uint32_t offat = 0;
 
 /************************
  * Web server
@@ -61,6 +72,35 @@ AsyncWebSocket ws("/ws");
 /************************
  * Handle websocket
  ************************/
+
+void handleWSCmd(size_t rxc, char * buffer) {
+    if (rxc > 5 && !strncmp(buffer, "$PROG", 5) && rxc == 2*buffer[5]+6) {
+        memcpy((char*)program, &buffer[6], rxc-5);
+        proglen = (rxc-6)/2;
+        state = RUNNING;
+
+    } else if (rxc > 5 && !strncmp(buffer, "$RGB", 4) && rxc == 3*((uint16_t*)(buffer))[2]+6) {
+        memcpy((char*)leds, &buffer[6], rxc-6);
+        state = REDRAW;
+
+    } else if (!strncmp(buffer, "$BLINK", 6)) {
+        LED_ON;
+        offat = millis() + 500;
+
+    } else if (!strncmp(buffer, "$PAUSE", 6)) {
+        state = STOPPED;
+    } else if (!strncmp(buffer, "$START", 6)) {
+        state = RUNNING;
+    } else if (!strncmp(buffer, "$NEXT", 5)) {
+        state = ONCE;
+    } else if (!strncmp(buffer, "$FW", 3)) {
+        state = FIREWORKS;
+        fireworksEvent(rxc, buffer); 
+    } else if (!strncmp(buffer, "$OFF", 4)) {
+        fill_solid(leds, NUM_LEDS, CRGB::Black);
+        state = REDRAW;
+    }
+}
 
 void webSocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, 
              void * arg, uint8_t *data, size_t len){
@@ -94,16 +134,14 @@ void webSocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsE
           data[len] = 0;
           DEBUGF("%s\n", (char*)data);
         } else {
-          for(size_t i=0; i < info->len; i++){
-            DEBUGF("%02x ", data[i]);
-          }
-          DEBUGF("\n");
+          handleWSCmd(info->len, (char*) data);
         }
         if(info->opcode == WS_TEXT)
           client->text("I got your text message");
         else
           client->binary("I got your binary message");
       } else {
+
         //message is comprised of multiple frames or the frame is split into multiple packets
         if(info->index == 0){
           if(info->num == 0)
@@ -136,37 +174,6 @@ void webSocketEvent(AsyncWebSocket * server, AsyncWebSocketClient * client, AwsE
   }
 }
 
-void handleString(int rxc, uint8_t * buffer) {
-
-	    if (rxc > 5 && !strncmp((char*)buffer, "$PROG", 5) && rxc == 2*buffer[5]+6) {
-	      memcpy((char*)program, &buffer[6], rxc-5);
-	      proglen = (rxc-6)/2;
-
-              state = RUNNING;
-
-	    } else if (rxc > 5 && !strncmp((char*)buffer, "$RGB", 4) && rxc == 3*((uint16_t*)(buffer))[2]+6) {
-	      memcpy((char*)leds, &buffer[6], rxc-6);
-              state = REDRAW;
-
-	    } else if (!strncmp((char*)buffer, "$BLINK", 6)) {
-              LED_ON;
-              offat = millis() + 500;
-
-	    } else if (!strncmp((char*)buffer, "$PAUSE", 6)) {
-              state = STOPPED;
-	    } else if (!strncmp((char*)buffer, "$START", 6)) {
-              state = RUNNING;
-	    } else if (!strncmp((char*)buffer, "$NEXT", 5)) {
-              state = ONCE;
-	    } else if (!strncmp((char*)buffer, "$FW", 3)) {
-              state = FIREWORKS;
-              fireworksEvent(buffer, rxc); 
-	    } else if (!strncmp((char*)buffer, "$OFF", 4)) {
-              fill_solid(leds, NUM_LEDS, CRGB::Black);
-              state = REDRAW;
-        }
-}
-
 /************************
  * Set up pins, LEDs, wifi
  ************************/
@@ -183,7 +190,6 @@ void setup() {
   sprintf(ap_ssid, "ESP_%08X", ESP.getChipId());
 
   LED_ON;
-  LED_OFF;
 
   ota_init(SSID, PASS, MDNM);
 
@@ -195,6 +201,7 @@ void setup() {
   httpServer.begin();
 
   setupFireworks(leds, NUM_LEDS);
+  LED_OFF;
 }
 
 /************************
@@ -208,8 +215,6 @@ void loop() {
   // Handle server stuff
   ota_loop();
 
-  //breatheLoop();
-
   // Update the colors.
   time = millis();
 
@@ -221,7 +226,14 @@ void loop() {
     //DEBUG("second: ", second());
   }
 
-  if (time > offat) LED_OFF;
+  if (offat && (time > offat)) {
+    offat = 0;
+    LED_OFF;
+  }
+  else if (offat) 
+    LED_ON;
+  else
+    breathe.loop();
 
   switch (state) {
     case STOPPED:

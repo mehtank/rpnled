@@ -119,7 +119,7 @@ function CHSV(h, s, v) {
 }
 
 
-var connection = new WebSocket('ws://'+location.hostname+':81/', ['arduino']);
+var connection = new WebSocket('ws://'+location.hostname+'/ws');
 connection.binaryType = "arraybuffer";
 connection.onopen = function(){
   connection.send('Connect ' + new Date()); 

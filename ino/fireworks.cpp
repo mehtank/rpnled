@@ -404,15 +404,15 @@ void fireworks() {
     delay(d);
 }
 
-void fireworksEvent(uint8_t* buffer, uint8_t rxc) {
-	if (!strncmp((char*)buffer, "$FWSTART", 8)) {
+void fireworksEvent(size_t rxc, char* buffer) {
+	if (!strncmp(buffer, "$FWSTART", 8)) {
 		startFireworks();
-	} else if (!strncmp((char*)buffer, "$FWSTOP", 7)) {
+	} else if (!strncmp(buffer, "$FWSTOP", 7)) {
 		stopFireworks();
-	} else if (!strncmp((char*)buffer, "$FWGO", 5)) {
+	} else if (!strncmp(buffer, "$FWGO", 5)) {
 		stopFireworks();
 		launch();
-	} else if (!strncmp((char*)buffer, "$FW", 3)) {
+	} else if (!strncmp(buffer, "$FW", 3)) {
 		stopFireworks();
 		if (rxc == 6) {
 			launch(buffer[3], buffer[4], buffer[5]);
